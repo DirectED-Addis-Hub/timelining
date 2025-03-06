@@ -1,57 +1,43 @@
-from fastapi import FastAPI, HTTPException
-from telegram import Update
-from telegram.ext import Application, MessageHandler, filters, CallbackContext
-import logging
+from fastapi import FastAPI, BackgroundTasks, Request
+from upstash_redis import Redis
+import httpx
 import os
-from dotenv import load_dotenv
-from pydantic import BaseModel
 
-# Load environment variables
-load_dotenv()
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-
-# FastAPI app initialization
+# Initialize FastAPI
 app = FastAPI()
 
-# Pydantic model to match Telegram's update data structure
-class TelegramUpdate(BaseModel):
-    update_id: int
-    message: dict
+# Access environment variables directly from Vercel environment
+REDIS_API_URL = os.getenv("KV_REST_API_URL")
+REDIS_API_TOKEN = os.getenv("KV_REST_API_TOKEN")
 
-# Telegram message handler
-async def handle_message(update: Update, context: CallbackContext) -> None:
-    """Process incoming messages."""
-    logging.info(f"Received message: {update.message.text}")
-    await update.message.reply_text("Received!")
+# Initialize Redis using the environment variables
+redis = Redis(REDIS_API_URL, REDIS_API_TOKEN)
+
+# Telegram Bot Token
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
+async def send_telegram_reply(chat_id: int, message: str):
+    """Send a reply to Telegram"""
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    async with httpx.AsyncClient() as client:
+        await client.post(url, json={"chat_id": chat_id, "text": message})
 
 @app.post("/")
-async def webhook(update: TelegramUpdate):
-    """Process incoming updates from Telegram."""
-    try:
-        # Initialize the Telegram bot application
-        bot_app = Application.builder().token(TOKEN).build()
+async def webhook(request: Request, background_tasks: BackgroundTasks):
+    """Handle Telegram webhook updates"""
+    data = await request.json()
+    
+    # Extract message info
+    chat_id = data.get("message", {}).get("chat", {}).get("id")
+    text = data.get("message", {}).get("text")
 
-        # Initialize the application asynchronously
-        await bot_app.initialize()
+    if not chat_id or not text:
+        return {"status": "ignored"}  # Ignore non-message updates
 
-        # Log the incoming update for debugging
-        logging.info(f"Received webhook update: {update.dict()}")  # Log incoming data
+    # Store the message in Redis queue
+    redis.lpush("telegram_messages", str(data))
 
-        # Convert the incoming update to the correct format for python-telegram-bot
-        telegram_update = Update.de_json(update.dict(), bot_app.bot)
+    # Send a Telegram reply asynchronously
+    background_tasks.add_task(send_telegram_reply, chat_id, "Message received and queued!")
 
-        # Add message handler
-        bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-        # Process the update (this is needed to trigger the message handler)
-        await bot_app.process_update(telegram_update)
-
-        return {"status": "ok"}
-
-    except Exception as e:
-        logging.error(f"Error processing request: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-	
+    return {"status": "ok"}

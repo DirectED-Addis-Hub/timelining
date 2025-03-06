@@ -343,7 +343,21 @@ files = [
     {file = "typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"},
 ]
 
+[[package]]
+name = "upstash-redis"
+version = "1.3.0"
+description = "Serverless Redis SDK from Upstash"
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "upstash_redis-1.3.0-py3-none-any.whl", hash = "sha256:f41b63135c1877a2c397446b61b14a772db0c172483d16696f1cdb68e580412e"},
+    {file = "upstash_redis-1.3.0.tar.gz", hash = "sha256:c5ee956e49a8f3db0404c2822d4357a09efc7ac1322d4fef98c3ecbe26f02865"},
+]
+
+[package.dependencies]
+httpx = ">=0.23.0,<1"
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "f07a08f0a6af588a8306608e21aec1f8e770f97a7087539721dd9f9ea34a4b8c"
+content-hash = "5fa30ac11696f4bcc66dd6c7c75bec2af4b60ec396c0a65ceeea052b408ae6e4"

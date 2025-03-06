@@ -4,15 +4,29 @@
     {
       "src": "api/webhook.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/worker.py",
+      "use": "@vercel/python"
     }
   ],
-  "env": {
-      "PYTHON_VERSION": "3.12"
-  },
   "routes": [
     {
       "src": "/",
       "dest": "/api/webhook.py"
+    },
+    {
+      "src": "/api/worker",
+      "dest": "/api/worker.py"
+    }
+  ],
+  "env": {
+    "PYTHON_VERSION": "3.12"
+  },
+  "crons": [
+    {
+      "path": "/api/worker",
+      "schedule": "*/5 * * * *"
     }
   ]
 }
