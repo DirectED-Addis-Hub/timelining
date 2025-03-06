@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/webhook.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "env": {
+      "PYTHON_VERSION": "3.12"
+  },
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/api/webhook.py"
+    }
+  ]
+}
