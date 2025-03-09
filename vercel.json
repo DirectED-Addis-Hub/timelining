@@ -2,31 +2,46 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/webhook.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/worker.py",
-      "use": "@vercel/python"
+      "src": "src/api/*.ts",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 10,
+        "memory": 1024
+      }
     }
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "/api/webhook.py"
+      "src": "/webhook",
+      "dest": "/src/api/webhook.ts",
+      "methods": ["POST"]
     },
     {
       "src": "/api/worker",
-      "dest": "/api/worker.py"
+      "dest": "/src/api/worker.ts",
+      "methods": ["GET"],
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "x-vercel-protection": "true"
+      }
+    },
+    {
+      "src": "/api/schedule-manager",
+      "dest": "/src/api/schedule-manager.ts",
+      "methods": ["POST"],
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "x-vercel-protection": "true"
+      }
     }
   ],
   "env": {
-    "PYTHON_VERSION": "3.12"
+    "NODE_VERSION": "20.x"
   },
   "crons": [
     {
       "path": "/api/worker",
-      "schedule": "*/5 * * * *"
+      "schedule": "*/10 * * * *"
     }
   ]
 }
