@@ -21,7 +21,10 @@ const redis = new Redis({
 // Logging setup
 const logger = createLogger({
     level: 'info',
-    format: format.combine(format.timestamp(), format.json()),
+    format: format.combine(
+        format.timestamp(),
+        format.json()
+    ),
     transports: [new transports.Console()],
 });
 
@@ -36,6 +39,7 @@ async function sendTelegramReply(chatId: number, message: string) {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
+        logger.warn('Invalid method:', { method: req.method });
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
@@ -46,17 +50,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const text = data.message?.text;
 
     if (!chatId || !text) {
-        return res.json({ status: 'ignored' }); // Ignore non-message updates
+        logger.info('Ignored update:', { type: data.message ? 'invalid_message' : 'non_message_update' });
+        return res.json({ status: 'ignored' });
     }
 
     try {
         // Store the message in Redis queue
         await redis.lpush('telegram_messages', JSON.stringify(data));
+        logger.info('Message queued:', { chatId, textLength: text.length });
+        
         // Send a Telegram reply
-        await sendTelegramReply(chatId, 'Message received and queued!');
+        await sendTelegramReply(chatId, 'Message received and added to processing queue!');
         return res.json({ status: 'ok' });
     } catch (error) {
-        logger.error('Error processing webhook:', error);
+        logger.error('Webhook error:', { 
+            chatId, 
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
         return res.status(500).json({ error: 'Internal server error' });
     }
 }

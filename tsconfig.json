@@ -7,7 +7,7 @@
       "skipLibCheck": true,                   // Skip type checking of declaration files
       "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references to the same file
       "outDir": "./dist",                     // Redirect output structure to the dist directory
-      "types": ["node", "express"],                       // Include Node.js types
+      "types": ["node", "express", "jest"],   // Include Node.js and Jest types
       "baseUrl": "./",                        // Base directory to resolve non-relative module names
       "paths": {
         "*": ["node_modules/*", "src/types/*"]

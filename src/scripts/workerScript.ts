@@ -22,7 +22,7 @@ const QUEUE_THRESHOLD = {
 const SCHEDULE_INTERVALS = {
     HIGH: 5,    // 5 minutes
     MEDIUM: 10, // 10 minutes
-    LOW: 15     // 15 minutes
+    LOW: 35     // 15 minutes
 } as const;
 
 // Type definitions
