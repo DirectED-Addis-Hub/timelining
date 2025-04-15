@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/api/*.tsx",
+      "src": "src/api/*.ts",
       "use": "@vercel/node",
       "config": {
         "maxDuration": 10,
@@ -13,22 +13,13 @@
   "routes": [
     {
       "src": "/",
-      "dest": "/src/api/webhook.tsx",
+      "dest": "/src/api/webhook.ts",
       "methods": ["POST"]
     },
     {
       "src": "/api/worker",
-      "dest": "/src/api/worker.tsx",
+      "dest": "/src/api/worker.ts",
       "methods": ["GET"],
-      "headers": {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "x-vercel-protection": "true"
-      }
-    },
-    {
-      "src": "/api/schedule-manager",
-      "dest": "/src/api/schedule-manager.tsx",
-      "methods": ["POST"],
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "x-vercel-protection": "true"

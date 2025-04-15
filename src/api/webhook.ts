@@ -1,43 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { Redis } from '@upstash/redis';
-import axios from 'axios';
-import dotenv from 'dotenv';
-import { createLogger, transports, format } from 'winston';
-
-// Load environment variables from .env file
-dotenv.config();
-
-// Access environment variables
-const REDIS_API_URL = process.env.KV_REST_API_URL;
-const REDIS_API_TOKEN = process.env.KV_REST_API_TOKEN;
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-
-// Initialize Redis using the environment variables
-const redis = new Redis({
-    url: REDIS_API_URL,
-    token: REDIS_API_TOKEN,
-});
-
-// Logging setup
-const logger = createLogger({
-    level: 'info',
-    format: format.combine(
-        format.timestamp(),
-        format.json()
-    ),
-    transports: [new transports.Console()],
-});
-
-// Function to send a reply to Telegram
-async function sendTelegramReply(chatId: number, message: string) {
-    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-    await axios.post(url, {
-        chat_id: chatId,
-        text: message,
-    });
-}
+import { logger } from '../lib/logger'
+import { redis } from '../lib/redis'
+import { sendTelegramReply } from '../lib/telegram';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+
+    logger.info('Webhook triggered.');
+
     if (req.method !== 'POST') {
         logger.warn('Invalid method:', { method: req.method });
         return res.status(405).json({ error: 'Method not allowed' });
