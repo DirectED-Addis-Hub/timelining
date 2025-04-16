@@ -1,12 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { runWorker } from '../scripts/workerScript'; // Adjust the import path as necessary
-import { createLogger, transports, format } from 'winston';
-
-const logger = createLogger({
-    level: 'info',
-    format: format.combine(format.timestamp(), format.json()),
-    transports: [new transports.Console()],
-});
+import { logger } from '../lib/logger'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {

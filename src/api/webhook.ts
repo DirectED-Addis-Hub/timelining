@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { logger } from '../lib/logger'
-import { redis } from '../lib/redis'
-import { sendTelegramReply } from '../lib/telegram';
+import { logger } from '../lib/logger';
+import { redis } from '../lib/redis';
+import { sendTelegramMessage } from '../lib/telegram';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
 
@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         logger.info('Message queued:', { chatId, textLength: text.length });
         
         // Send a Telegram reply
-        await sendTelegramReply(chatId, 'Message received and added to processing queue!');
+        await sendTelegramMessage(chatId, 'Message received and added to processing queue!');
         return res.json({ status: 'ok' });
     } catch (error) {
         logger.error('Webhook error:', { 

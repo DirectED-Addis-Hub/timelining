@@ -10,6 +10,9 @@ jest.mock("@upstash/redis", () => ({
 
 // Mock Axios for Telegram API
 jest.mock("axios", () => ({
+  create: jest.fn(() => ({
+    post: jest.fn().mockResolvedValue({ data: { ok: true } })
+  })),
   post: jest.fn().mockResolvedValue({ data: { ok: true } }),
 }));
 
