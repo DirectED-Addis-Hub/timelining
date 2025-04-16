@@ -1,6 +1,7 @@
 import { logger } from '../lib/logger';
 import { redis } from '../lib/redis';
 import { TelegramMessage, parseMessage, sendTelegramMessage } from '../lib/telegram';
+import { createEntry } from '../lib/db/entries';
 
 // Constants for optimization
 const BATCH_SIZE = 10; // Process multiple messages per invocation
@@ -22,21 +23,30 @@ interface WorkerResult {
 async function processMessage(messageData: TelegramMessage): Promise<boolean> {
     const chatId = messageData.message?.chat?.id;
     const text = messageData.message?.text;
-
-    if (!chatId || !text) {
-        logger.warn('Received invalid message format:', messageData);
-        return true; // Consider invalid messages as "processed" to remove from queue
+    const username = messageData.message?.from?.username;
+    const date = messageData.message?.date;
+  
+    if (!chatId || !text || !username || !date) {
+      logger.warn('Received invalid message format:', messageData);
+      return true; // Consider invalid messages as "processed"
     }
-
+  
     try {
-        await sendTelegramMessage(chatId, `Processed message: ${text}`);
-        logger.info('Message processed successfully:', { chatId });
-        return true;
+      await createEntry({
+        senderHandle: username,
+        text,
+        timestamp: new Date(date * 1000).toISOString(), // Convert from Unix timestamp to ISO
+        channel: 'telegram',
+      });
+  
+      await sendTelegramMessage(chatId, `Added to timeline: "${text}"`);
+      logger.info('Message processed and added to timeline', { chatId, username });
+      return true;
     } catch (error) {
-        logger.error('Error processing message:', { chatId, text, error });
-        return false;
+      logger.error('Error processing message', { chatId, text, username, error });
+      return false;
     }
-}
+  }
 
 /**
  * Main worker function that processes messages from the Redis queue

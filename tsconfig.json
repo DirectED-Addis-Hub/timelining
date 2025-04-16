@@ -8,16 +8,16 @@
       "forceConsistentCasingInFileNames": true, // Disallow inconsistently-cased references to the same file
       "outDir": "./dist",                     // Redirect output structure to the dist directory
       "types": ["node", "express", "jest"],   // Include Node.js and Jest types
-      "baseUrl": "./",                        // Base directory to resolve non-relative module names
+      "baseUrl": "src",                        // Base directory to resolve non-relative module names
       "paths": {
-        "*": ["node_modules/*", "src/types/*"]
+        "*": ["node_modules/*", "src/types/*", "src/*"]
       }
     },
     "include": [
-      "src/**/*"
+      "src/**/*",
+      "test/**/*"
     ],
     "exclude": [
-      "node_modules",                         // Exclude node_modules directory
-      "**/*.spec.ts"                          // Exclude test files if you have any
+      "node_modules"
     ]
   }

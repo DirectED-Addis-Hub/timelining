@@ -18,18 +18,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const chatId = data.message?.chat?.id;
     const text = data.message?.text;
 
-    if (!chatId || !text) {
-        logger.info('Ignored update:', { type: data.message ? 'invalid_message' : 'non_message_update' });
-        return res.json({ status: 'ignored' });
-    }
-
     try {
         // Store the message in Redis queue
         await redis.lpush('telegram_messages', JSON.stringify(data));
         logger.info('Message queued:', { chatId, textLength: text.length });
         
         // Send a Telegram reply
-        await sendTelegramMessage(chatId, 'Message received and added to processing queue!');
+        await sendTelegramMessage(chatId, `${JSON.stringify(data)}`);
         return res.json({ status: 'ok' });
     } catch (error) {
         logger.error('Webhook error:', { 

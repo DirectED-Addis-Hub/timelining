@@ -8,14 +8,46 @@ dotenv.config();
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_TIMEOUT = 5000; // Set your desired timeout
 
-// Type definitions
 export interface TelegramMessage {
-    message?: {
-        chat?: {
-            id: number;
-        };
-        text?: string;
+  update_id: number;
+  message?: {
+    message_id: number;
+    from?: {
+      id: number;
+      is_bot: boolean;
+      first_name: string;
+      username?: string;
+      language_code?: string;
     };
+    chat?: {
+      id: number;
+      first_name?: string;
+      username?: string;
+      type: 'private' | 'group' | 'supergroup' | 'channel';
+    };
+    date: number;
+    text?: string;
+    entities?: Array<{
+      offset: number;
+      length: number;
+      type: 'mention' | 'hashtag' | 'bot_command' | 'url' | 'email' | 'phone_number' | 'bold' | 'italic' | 'code' | 'pre' | 'text_link' | 'text_mention';
+    }>;
+    caption?: string; // Caption for photos or other media
+    photo?: Array<{
+      file_id: string;
+      file_unique_id: string;
+      file_size: number;
+      width: number;
+      height: number;
+    }>; // Array for photo objects
+    voice?: {
+      duration: number;
+      mime_type: string;
+      file_id: string;
+      file_unique_id: string;
+      file_size: number;
+    }; // Voice message properties
+  };
 }
 
 const telegramApi = axios.create({

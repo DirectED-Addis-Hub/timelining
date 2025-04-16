@@ -1,12 +1,12 @@
-import handler from "../src/api/worker";
+import handler from "../../src/api/worker";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Mock the runWorker function used in the handler
-jest.mock("../src/scripts/workerScript", () => ({
+jest.mock("@/scripts/workerScript", () => ({
   runWorker: jest.fn(),
 }));
 
-import { runWorker } from "../src/scripts/workerScript";
+import { runWorker } from "../../src/scripts/workerScript";
 const mockedRunWorker = runWorker as jest.MockedFunction<typeof runWorker>;
 
 describe("Worker API", () => {

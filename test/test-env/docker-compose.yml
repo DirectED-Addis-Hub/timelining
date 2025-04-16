@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  neo4j:
+    image: neo4j:5.15
+    container_name: neo4j-test
+    ports:
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/neo4jtesting
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "neo4jtesting", "RETURN 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  neo4j_data:

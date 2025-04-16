@@ -1,4 +1,4 @@
-import handler from "../src/api/webhook"; // Import the Vercel function
+import handler from "../../src/api/webhook"; // Import the Vercel function
 import { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Mock Redis client
