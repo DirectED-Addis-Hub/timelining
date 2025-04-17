@@ -1,7 +1,8 @@
 import { logger } from '../lib/logger';
 import { redis } from '../lib/redis';
-import { parseMessage } from '../lib/telegram';
+import { TelegramMessage } from '../lib/telegram';
 import { writeEntry } from './process';
+
 // Constants for optimization
 const BATCH_SIZE = 10; // Process multiple messages per invocation
 const EXECUTION_TIMEOUT = 8000; // 8 seconds (keeping safe margin for 10s limit)
@@ -35,25 +36,22 @@ export async function runWorker(): Promise<WorkerResult> {
             }
 
             const message = await redis.lpop('telegram_messages');
+
             if (!message) {
-                break; // Queue is empty - no more messages to process
+                logger.info('No message received from Redis.');
+                break;
             }
 
-            const messageData = parseMessage(String(message));
-
-            if (!messageData) {
-                logger.warn('Failed to parse message from queue')
-                failedCount++;
-                continue;
-            }
+            const messageData = message as TelegramMessage;
 
             try {
                 // Write metadata to neo4j db
                 const recordId = await writeEntry(messageData);
                 
                 if (recordId) {
+                    logger.info('Wrote message metadata to db');
                     processedCount++;
-                    await redis.rpush('timeline_entry', recordId)
+                    await redis.lpush('timeline_entry', recordId)
                 } else {
                     failedCount++;
                     // Re-queue failed messages

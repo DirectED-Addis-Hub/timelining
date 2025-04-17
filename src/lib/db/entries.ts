@@ -1,4 +1,4 @@
-import { getDriver } from './neo4j';
+import { closeDriver, getDriver, initDriver } from './neo4j';
 import { TelegramMessage } from '../telegram';
 import { 
   FullEntryData, 
@@ -131,85 +131,88 @@ export function mapTelegramMessageToEntryData(msg: TelegramMessage): FullEntryIn
 }
 
 export async function createEntry(input: FullEntryInputData): Promise<string> {
-  const driver = getDriver();
-  const session = driver.session();
+  const driver = await initDriver();
+  let session;
+  session = driver.session({ database: 'neo4j' })
 
-  logger.info("Writing entry node, creating nodes of other types if needed")
+  logger.info("Writing entry node, creating nodes of other types if needed...")
+  logger.debug(input)
 
   try {
-    const result = await session.run(
-      `
-      MERGE (p:Participant {handle: $senderHandle})
-      MERGE (c:TelegramChat {id: $chatId})
-      ON CREATE SET 
-        c.firstName = $chatFirstName,
-        c.username = $chatUsername,
-        c.type = $chatType
-      CREATE (e:Entry {
-        id: randomUUID(),
-        updateId: $updateId,
-        messageId: $messageId,
-        date: datetime($date)
-      })-[:SENT_BY]->(p)
+    const result = await session.executeWrite(async (tx) => {
+      const cypherQuery = `
+        MERGE (p:Participant {handle: $senderHandle})
+        MERGE (c:TelegramChat {id: $chatId})
+        ON CREATE SET 
+          c.firstName = $chatFirstName,
+          c.username = $chatUsername,
+          c.type = $chatType
+        CREATE (e:Entry {
+          id: randomUUID(),
+          updateId: $updateId,
+          messageId: $messageId,
+          date: datetime($date)
+        })-[:SENT_BY]->(p)
 
-      MERGE (e)-[:FROM_CHAT]->(c)
+        MERGE (e)-[:FROM_CHAT]->(c)
 
-      WITH e, p, c
+        WITH e, p, c
 
-      ${input.textContent ? `
-      CREATE (t:TextContent {id: randomUUID(), text: $text})
-      MERGE (e)-[:HAS_TEXT]->(t)
-      WITH e, p, c
-      ` : ''}
+        ${input.textContent ? `
+        CREATE (t:TextContent {id: randomUUID(), text: $text})
+        MERGE (e)-[:HAS_TEXT]->(t)
+        WITH e, p, c
+        ` : ''}
 
-      ${input.captionContent ? `
-      CREATE (cap:CaptionContent {id: randomUUID(), caption: $caption})
-      MERGE (e)-[:HAS_CAPTION]->(cap)
-      WITH e, p, c
-      ` : ''}
+        ${input.captionContent ? `
+        CREATE (cap:CaptionContent {id: randomUUID(), caption: $caption})
+        MERGE (e)-[:HAS_CAPTION]->(cap)
+        WITH e, p, c
+        ` : ''}
 
-      ${input.entities ? `
-      UNWIND range(0, size($entityOffsets) - 1) AS idxEntity
-      CREATE (en:Entity {
-        id: randomUUID(),
-        offset: $entityOffsets[idxEntity],
-        length: $entityLengths[idxEntity],
-        type: $entityTypes[idxEntity]
-      })
-      MERGE (e)-[:HAS_ENTITY]->(en)
-      WITH e, p, c
-      ` : ''}
+        ${input.entities?.length > 0 ? `
+        UNWIND range(0, size($entityOffsets) - 1) AS idxEntity
+        CREATE (en:Entity {
+          id: randomUUID(),
+          offset: $entityOffsets[idxEntity],
+          length: $entityLengths[idxEntity],
+          type: $entityTypes[idxEntity]
+        })
+        MERGE (e)-[:HAS_ENTITY]->(en)
+        WITH e, p, c
+        ` : ''}
 
-      ${input.photos ? `
-      UNWIND range(0, size($photoFileIds) - 1) AS idxPhoto
-      CREATE (pht:Photo {
-        id: randomUUID(),
-        fileId: $photoFileIds[idxPhoto],
-        fileUniqueId: $photoFileUniqueIds[idxPhoto],
-        fileSize: $photoFileSizes[idxPhoto],
-        width: $photoWidths[idxPhoto],
-        height: $photoHeights[idxPhoto]
-      })
-      MERGE (e)-[:HAS_PHOTO]->(pht)
-      WITH e, p, c
-      ` : ''}
+        ${input.photos?.length > 0 ? `
+        UNWIND range(0, size($photoFileIds) - 1) AS idxPhoto
+        CREATE (pht:Photo {
+          id: randomUUID(),
+          fileId: $photoFileIds[idxPhoto],
+          fileUniqueId: $photoFileUniqueIds[idxPhoto],
+          fileSize: $photoFileSizes[idxPhoto],
+          width: $photoWidths[idxPhoto],
+          height: $photoHeights[idxPhoto]
+        })
+        MERGE (e)-[:HAS_PHOTO]->(pht)
+        WITH e, p, c
+        ` : ''}
 
-      ${input.voice ? `
-      CREATE (v:Voice {
-        id: randomUUID(),
-        fileId: $voiceFileId,
-        fileUniqueId: $voiceFileUniqueId,
-        fileSize: $voiceFileSize,
-        duration: $voiceDuration,
-        mimeType: $voiceMimeType
-      })
-      MERGE (e)-[:HAS_VOICE]->(v)
-      WITH e, p, c
-      ` : ''}
+        ${input.voice ? `
+        CREATE (v:Voice {
+          id: randomUUID(),
+          fileId: $voiceFileId,
+          fileUniqueId: $voiceFileUniqueId,
+          fileSize: $voiceFileSize,
+          duration: $voiceDuration,
+          mimeType: $voiceMimeType
+        })
+        MERGE (e)-[:HAS_VOICE]->(v)
+        WITH e, p, c
+        ` : ''}
 
-      RETURN e, p, c
-      `,
-      {
+        RETURN e.id AS id
+      `;
+      
+      const queryParams = {
         senderHandle: input.participant.handle,
         chatId: input.chat.id,
         chatFirstName: input.chat.firstName,
@@ -233,17 +236,26 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
         voiceFileSize: input.voice?.fileSize,
         voiceDuration: input.voice?.duration,
         voiceMimeType: input.voice?.mimeType,
-      }
-    );
+      };
 
-    const record = result.records[0];
-    const entryNode = record.get('e').properties;
+      // Run the query
+      const result = await tx.run(cypherQuery, queryParams);
 
-    logger.info("Returning entry id ", entryNode.id)
+      logger.debug("Cypher executed", { query: cypherQuery, params: queryParams, resultSummary: result.summary });
 
-    return entryNode.id;
-  } finally {
-    await session.close();
+      // Return the result
+      return result;
+  });
+
+  if (!result.records.length) {
+    logger.error("No records returned!", { resultSummary: result.summary });
+    throw new Error("No records returned from database.");
+  }
+  return result.records[0].get('id');
+
+  } catch (error) {
+    logger.error("Error creating entry node:", error);
+    throw error;  // Rethrow the error to be handled by the caller
   }
 }
 

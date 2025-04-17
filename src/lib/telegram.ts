@@ -47,6 +47,51 @@ export interface TelegramMessage {
       file_unique_id: string;
       file_size: number;
     }; // Voice message properties
+    video?: {
+      duration: number;
+      width: number,
+      height: number,
+      file_name: string,
+      mime_type: string,
+      thumbnail: {
+        file_id: string,
+        file_unique_id: string,
+        file_size: number,
+        width: number,
+        height: number
+      },
+      thumb: {
+        file_id: string,
+        file_unique_id: string,
+        file_size: number,
+        width: number,
+        height: number
+      },
+      file_id: string,
+      file_unique_id: string,
+      file_size: number
+    }; // Video message properties
+    video_note?: {
+      duration: number;
+      length: number;
+      thumbnail: {
+        file_id: string;
+        file_unique_id: string;
+        file_size: number;
+        width: number;
+        height: number;
+      };
+      thumb: {
+        file_id: string;
+        file_unique_id: string;
+        file_size: number;
+        width: number;
+        height: number;
+      };
+      file_id: string;
+      file_unique_id: string;
+      file_size: number;
+    };    
   };
 }
 
@@ -54,16 +99,6 @@ const telegramApi = axios.create({
   timeout: TELEGRAM_API_TIMEOUT,
   headers: { 'Content-Type': 'application/json' },
 });
-
-export function parseMessage(message: string): TelegramMessage | null {
-  try {
-    return JSON.parse(message) as TelegramMessage;
-  } catch (error) {
-    logger.error('Failed to parse message:', { message, error });
-    throw error;
-  }
-}
-
 
 /**
  * Sends a message to a Telegram chat with timeout and error handling
@@ -74,8 +109,9 @@ export async function sendTelegramMessage(chatId: number, text: string): Promise
       chat_id: chatId,
       text,
     });
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+  } catch (error: unknown) {
+    const axiosError = error as { code?: string };
+    if (axios.isAxiosError(error) && axiosError.code === 'ECONNABORTED') {
       logger.warn('Telegram API timeout', { chatId });
       throw new Error('Telegram API timeout');
     }
