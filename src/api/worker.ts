@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { runWorker } from '../scripts/workerScript'; // Adjust the import path as necessary
+import { runWorker } from '../worker/index'; // Adjust the import path as necessary
 import { logger } from '../lib/logger'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

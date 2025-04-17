@@ -1,8 +1,7 @@
 import { logger } from '../lib/logger';
 import { redis } from '../lib/redis';
-import { TelegramMessage, parseMessage, sendTelegramMessage } from '../lib/telegram';
-import { createEntry } from '../lib/db/entries';
-
+import { parseMessage } from '../lib/telegram';
+import { writeEntry } from './process';
 // Constants for optimization
 const BATCH_SIZE = 10; // Process multiple messages per invocation
 const EXECUTION_TIMEOUT = 8000; // 8 seconds (keeping safe margin for 10s limit)
@@ -14,39 +13,6 @@ interface WorkerResult {
     remaining_count?: number;
     recommended_interval?: number;
 }
-
-/**
- * Processes a single message from the queue
- * @param messageData - The message data to process
- * @returns boolean - Whether processing was successful
- */
-async function processMessage(messageData: TelegramMessage): Promise<boolean> {
-    const chatId = messageData.message?.chat?.id;
-    const text = messageData.message?.text;
-    const username = messageData.message?.from?.username;
-    const date = messageData.message?.date;
-  
-    if (!chatId || !text || !username || !date) {
-      logger.warn('Received invalid message format:', messageData);
-      return true; // Consider invalid messages as "processed"
-    }
-  
-    try {
-      await createEntry({
-        senderHandle: username,
-        text,
-        timestamp: new Date(date * 1000).toISOString(), // Convert from Unix timestamp to ISO
-        channel: 'telegram',
-      });
-  
-      await sendTelegramMessage(chatId, `Added to timeline: "${text}"`);
-      logger.info('Message processed and added to timeline', { chatId, username });
-      return true;
-    } catch (error) {
-      logger.error('Error processing message', { chatId, text, username, error });
-      return false;
-    }
-  }
 
 /**
  * Main worker function that processes messages from the Redis queue
@@ -76,27 +42,27 @@ export async function runWorker(): Promise<WorkerResult> {
             const messageData = parseMessage(String(message));
 
             if (!messageData) {
-                logger.info('Processed empty message from queue, incrementing fail count')
+                logger.warn('Failed to parse message from queue')
                 failedCount++;
                 continue;
             }
 
-            if (messageData) {
-                try {
-                    const success = await processMessage(messageData);
-                    
-                    if (success) {
-                        processedCount++;
-                    } else {
-                        failedCount++;
-                        // Re-queue failed messages
-                        await redis.rpush('telegram_messages', message);
-                    }
-                } catch (err) {
-                    logger.error('Unexpected error during processing:', { error: err });
+            try {
+                // Write metadata to neo4j db
+                const recordId = await writeEntry(messageData);
+                
+                if (recordId) {
+                    processedCount++;
+                    await redis.rpush('timeline_entry', recordId)
+                } else {
                     failedCount++;
+                    // Re-queue failed messages
                     await redis.rpush('telegram_messages', message);
                 }
+            } catch (err) {
+                logger.error('Unexpected error during processing:', { error: err });
+                failedCount++;
+                await redis.rpush('telegram_messages', message);
             }
         }
 

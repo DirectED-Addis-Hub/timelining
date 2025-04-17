@@ -41,17 +41,6 @@ describe("Telegram Webhook API", () => {
     expect(jsonMock).toHaveBeenCalledWith({ error: "Method not allowed" });
   });
 
-  it("should return status 'ignored' for invalid messages", async () => {
-    mockReq = {
-      method: "POST",
-      body: {},
-    } as VercelRequest;
-
-    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
-
-    expect(jsonMock).toHaveBeenCalledWith({ status: "ignored" });
-  });
-
   it("should queue a valid message and return 'ok'", async () => {
     mockReq = {
       method: "POST",

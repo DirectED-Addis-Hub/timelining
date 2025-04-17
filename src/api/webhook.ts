@@ -16,12 +16,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Extract message info
     const chatId = data.message?.chat?.id;
-    const text = data.message?.text;
 
     try {
         // Store the message in Redis queue
         await redis.lpush('telegram_messages', JSON.stringify(data));
-        logger.info('Message queued:', { chatId, textLength: text.length });
+        logger.info('Message queued:', { chatId });
         
         // Send a Telegram reply
         await sendTelegramMessage(chatId, `${JSON.stringify(data)}`);

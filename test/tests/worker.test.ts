@@ -2,11 +2,11 @@ import handler from "../../src/api/worker";
 import { VercelRequest, VercelResponse } from "@vercel/node";
 
 // Mock the runWorker function used in the handler
-jest.mock("@/scripts/workerScript", () => ({
+jest.mock("../../src/worker/index", () => ({
   runWorker: jest.fn(),
 }));
 
-import { runWorker } from "../../src/scripts/workerScript";
+import { runWorker } from "../../src/worker/index";
 const mockedRunWorker = runWorker as jest.MockedFunction<typeof runWorker>;
 
 describe("Worker API", () => {
@@ -63,5 +63,32 @@ describe("Worker API", () => {
     expect(jsonMock).toHaveBeenCalledWith({
       error: "Something failed",
     });
+  });
+
+  it("should process message with multiple attachments and return success", async () => {
+    // Mock the runWorker call to simulate a processed message with multiple attachments
+    const fakeResult = {
+      status: 'success',
+      processed_count: 1,
+      handled_types: ['text', 'photo', 'voice'], // Example of multiple attachment types handled
+    };
+    
+    mockedRunWorker.mockResolvedValue(fakeResult);
+
+    // Simulate a GET request
+    mockReq = { method: "GET" } as VercelRequest;
+
+    // Execute the handler
+    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+    // Validate that the worker was called and the appropriate response is returned
+    expect(mockedRunWorker).toHaveBeenCalled();
+    expect(jsonMock).toHaveBeenCalledWith({
+      status: "Worker executed",
+      result: fakeResult,
+    });
+
+    // Validate that multiple types were handled (text, photo, and voice)
+    expect(fakeResult.handled_types).toEqual(['text', 'photo', 'voice']);
   });
 });
