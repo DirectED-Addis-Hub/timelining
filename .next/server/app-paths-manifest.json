@@ -1,0 +1,5 @@
+{
+  "/api/docs/log-drain/route": "app/api/docs/log-drain/route.js",
+  "/api/story/webhook/route": "app/api/story/webhook/route.js",
+  "/api/story/worker/route": "app/api/story/worker/route.js"
+}

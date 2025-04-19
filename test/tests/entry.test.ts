@@ -1,9 +1,9 @@
 // tests/entry.test.ts
 import { getDriver, closeDriver, initDriver } from '../../src/lib/db/neo4j';
-import { mapTelegramMessageToEntryData, createEntry, getFullEntryData } from '../../src/lib/db/entries';
+import { mapTelegramMessageToEntryData, createEntry, getFullEntryData } from '../../src/services/entryService';
 import { Session } from 'neo4j-driver';
 import { TelegramMessage } from '../../src/lib/telegram';
-import { FullEntryData } from '../../src/lib/db/models';
+import { FullEntryData } from '../../src/lib/db/models/entry';
 
 const testTelegramMessage: TelegramMessage = {
   update_id: 123456789,

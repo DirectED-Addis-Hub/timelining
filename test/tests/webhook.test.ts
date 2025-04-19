@@ -1,5 +1,4 @@
-import handler from "../../src/api/webhook"; // Import the Vercel function
-import { VercelRequest, VercelResponse } from "@vercel/node";
+import handler from "@/app/api/story/webhook/route"; // Import the Vercel function
 
 // Mock Redis client
 jest.mock("@upstash/redis", () => ({

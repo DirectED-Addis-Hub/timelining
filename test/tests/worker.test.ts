@@ -1,37 +1,25 @@
-import handler from "../../src/api/worker";
-import { VercelRequest, VercelResponse } from "@vercel/node";
+import { GET, POST } from '@/app/api/story/worker/route';
+import { runWorker } from '@/services/worker';
 
-// Mock the runWorker function used in the handler
-jest.mock("../../src/worker/index", () => ({
+// Mock the runWorker function used in the GET
+jest.mock("@/services/worker/index", () => ({
   runWorker: jest.fn(),
 }));
 
-import { runWorker } from "../../src/worker/index";
 const mockedRunWorker = runWorker as jest.MockedFunction<typeof runWorker>;
 
-describe("Worker API", () => {
-  let mockReq: Partial<VercelRequest>;
-  let mockRes: Partial<VercelResponse>;
-  let jsonMock: jest.Mock;
-  let statusMock: jest.Mock;
-
+describe("API /api/worker", () => {
   beforeEach(() => {
-    jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
-
-    mockRes = {
-      json: jsonMock,
-      status: statusMock,
-    } as unknown as VercelResponse;
+    mockedRunWorker.mockReset();
   });
 
-  it("should return 405 for non-GET requests", async () => {
-    mockReq = { method: "POST" } as VercelRequest;
+  it('should return 405 for non-GET requests', async () => {
+    const req = new Request('http://localhost/api/worker', { method: 'POST' });
+    const res = await POST(req);
 
-    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
-
-    expect(statusMock).toHaveBeenCalledWith(405);
-    expect(jsonMock).toHaveBeenCalledWith({ error: "Method not allowed" });
+    expect(res.status).toBe(405);
+    const text = await res.text();
+    expect(text).toBe('Method Not Allowed');
   });
 
   it("should call runWorker and return result", async () => {
@@ -41,13 +29,15 @@ describe("Worker API", () => {
     };
     mockedRunWorker.mockResolvedValue(fakeResult);
 
-    mockReq = { method: "GET" } as VercelRequest;
-
-    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+    const req = new Request('http://localhost/api/worker', { method: 'GET' });
+    const res = await GET();
 
     expect(mockedRunWorker).toHaveBeenCalled();
-    expect(jsonMock).toHaveBeenCalledWith({
-      status: "Worker executed",
+    expect(res.status).toBe(200);
+
+    const json = await res.json();
+    expect(json).toEqual({
+      status: 'Worker executed',
       result: fakeResult,
     });
   });
@@ -57,7 +47,7 @@ describe("Worker API", () => {
 
     mockReq = { method: "GET" } as VercelRequest;
 
-    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+    await GET(mockReq as VercelRequest, mockRes as VercelResponse);
 
     expect(statusMock).toHaveBeenCalledWith(500);
     expect(jsonMock).toHaveBeenCalledWith({
@@ -78,8 +68,8 @@ describe("Worker API", () => {
     // Simulate a GET request
     mockReq = { method: "GET" } as VercelRequest;
 
-    // Execute the handler
-    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+    // Execute the GET
+    await GET(mockReq as VercelRequest, mockRes as VercelResponse);
 
     // Validate that the worker was called and the appropriate response is returned
     expect(mockedRunWorker).toHaveBeenCalled();
