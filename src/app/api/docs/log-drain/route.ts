@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   // Vercel verification token sent in the request headers
   const verificationToken = req.headers.get('x-vercel-verify');
   const expectedToken = '72062fa2aabce4106de99743f55a6b6a4f0ba296';  // Replace with your token
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   } else {
     return NextResponse.json({ error: 'Invalid verification token' }, { status: 400 });
   }
-
+};
     // try {
     //     const logs = req.body;
 
@@ -34,4 +34,3 @@ export async function GET(req: Request) {
     //     console.error('Error processing logs:', error);
     //     return res.status(500).json({ message: 'Internal Server Error' });
     // }
-};

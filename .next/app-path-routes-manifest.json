@@ -1,5 +1,6 @@
 {
   "/api/docs/log-drain/route": "/api/docs/log-drain",
+  "/api/route": "/api",
   "/api/story/webhook/route": "/api/story/webhook",
   "/api/story/worker/route": "/api/story/worker"
 }

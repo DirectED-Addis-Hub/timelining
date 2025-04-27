@@ -1,4 +1,5 @@
-import handler from "@/app/api/story/webhook/route"; // Import the Vercel function
+import { GET, POST } from "@/app/api/story/webhook/route"; 
+import { NextRequest, NextResponse } from "next/server";
 
 // Mock Redis client
 jest.mock("@upstash/redis", () => ({
@@ -16,8 +17,8 @@ jest.mock("axios", () => ({
 }));
 
 describe("Telegram Webhook API", () => {
-  let mockReq: Partial<VercelRequest>;
-  let mockRes: Partial<VercelResponse>;
+  let mockReq: NextRequest;
+  let mockRes: NextResponse;
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
 
@@ -28,31 +29,33 @@ describe("Telegram Webhook API", () => {
     mockRes = {
       json: jsonMock,
       status: statusMock,
-    } as unknown as VercelResponse;
+    } as unknown as NextResponse;
   });
 
   it("should return 405 for non-POST requests", async () => {
-    mockReq = { method: "GET" } as VercelRequest;
-
-    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
-
-    expect(statusMock).toHaveBeenCalledWith(405);
-    expect(jsonMock).toHaveBeenCalledWith({ error: "Method not allowed" });
+    const mockReq = new NextRequest('http://localhost/', { method: "GET" });
+    const res = await POST(mockReq);
+  
+    expect(res.status).toBe(405);
   });
 
   it("should queue a valid message and return 'ok'", async () => {
-    mockReq = {
-      method: "POST",
-      body: {
+    // Create a mock Request
+    const req = new NextRequest('http://localhost/', {
+      method: 'POST',
+      body: JSON.stringify({
         message: {
           chat: { id: 12345 },
           text: "Hello",
         },
+      }),
+      headers: {
+        'Content-Type': 'application/json',
       },
-    } as VercelRequest;
+    });
 
-    await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+    const res = await POST(req);
 
-    expect(jsonMock).toHaveBeenCalledWith({ status: "ok" });
+    expect(res.status).toBe(200);
   });
 });

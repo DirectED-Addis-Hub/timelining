@@ -1,10 +1,14 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { redis } from '@/lib/redis';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { handleError } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
+  if (request.method !== 'POST') {
+    return new NextResponse('Method Not Allowed', { status: 405 });
+  }
+  
   logger.info('Webhook triggered.');
 
   try {
@@ -16,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     await sendTelegramMessage(chatId, `${JSON.stringify(data)}`);
 
-    return Response.json({ status: 'ok' });
+    return NextResponse.json({ status: 'ok' });
   } catch (error) {
     logger.error('Webhook error', { error });
     return handleError(error);
@@ -24,5 +28,5 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return new Response('Method Not Allowed', { status: 405 });
+  return new NextResponse('Method Not Allowed', { status: 405 });
 }

@@ -5,7 +5,7 @@ import { logger } from './logger'; // assuming you have a shared logger
 
 dotenv.config();
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const BOT_TOKEN = process.env.NODE_ENV === "development" ? process.env.TELEGRAM_BOT_TOKEN_DEV : process.env.TELEGRAM_BOT_TOKEN_DEV;
 const TELEGRAM_API_TIMEOUT = 5000; // Set your desired timeout
 
 export interface TelegramMessage {

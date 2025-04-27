@@ -1,21 +1,33 @@
 import { logger } from '@/lib/logger';
 import { runWorker } from '@/services/worker';
 import { handleError } from '@/lib/utils'; // reuse the error handler
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   logger.info('Cron job triggered.');
 
   try {
     const result = await runWorker(); // assuming it returns a status or object
     logger.info('Worker result', { result });
 
-    return Response.json({ status: 'Worker executed', result });
-  } catch (error) {
-    logger.error('Error in cron job', { error });
-    return handleError(error);
+    return NextResponse.json({ status: 'Worker executed', result });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      // TypeScript now knows 'error' is an instance of Error
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    } else {
+      // If it's not an instance of Error, we handle it in a generic way
+      return NextResponse.json(
+        { error: 'Unknown error occurred' },
+        { status: 500 }
+      );
+    }
   }
 }
 
 export async function POST() {
-  return new Response('Method Not Allowed', { status: 405 });
+  return new NextResponse('Method Not Allowed', { status: 405 });
 }
