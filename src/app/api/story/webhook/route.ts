@@ -17,17 +17,17 @@ export async function POST(request: NextRequest) {
     const messageId = data.message?.message_id;
 
     await redis.lpush('telegram_messages', JSON.stringify(data));
-    logger.info('Message queued', { chatId });
+    logger.info(`Message queued. chat ID: ${chatId}, message ID: ${messageId} `);
 
     // Send the silent reply (emoji)
-    const msg = await sendTelegramMessage(chatId, "✅", {
+    const msg = await sendTelegramMessage(chatId, "✅ Added to processing queue", {
       reply_to_message_id: messageId
     });
 
-    // Asynchronously schedule the deletion after 1 second
+    // Asynchronously schedule the deletion for next time the function is called
     Promise.resolve().then(() => {
       setTimeout(async () => {
-        await deleteTelegramMessage(chatId, msg.message_id); // Delete after 1 second
+        await deleteTelegramMessage(chatId, msg.message_id);
       }, 1000);
     });
 

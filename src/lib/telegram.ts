@@ -104,12 +104,11 @@ const telegramApi = axios.create({
  * Sends a message to a Telegram chat with timeout and error handling
  */
 export async function sendTelegramMessage(chatId: number, text: string, options: any = {}): Promise<{ message_id: number }> {
-  logger.info(`Sending message from bot with token ${BOT_TOKEN}`)
   try {
     const response = await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       chat_id: chatId,
       text,
-      options
+      ...options
     });
 
     // Return the message ID for future use (to delete it later)
