@@ -1,38 +1,46 @@
-name: Set Telegram Webhook on Preview Deploy
+name: Set Telegram Webhook on Preview
 
 on:
-  deployment_status:
-    types: [success]
+  push:
+    branches-ignore:
+      - main
 
 jobs:
-  set-webhook:
-    if: |
-      github.event.deployment_status.state == 'success' &&
-      github.ref != 'refs/heads/main'
+  set-preview-webhook:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Set up Node.js & pnpm
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install pnpm
-        run: npm install -g pnpm
+          node-version: 20
+          cache: pnpm
+      - run: npm install -g pnpm
 
       - name: Install dependencies
         run: pnpm install
 
+      - name: Compute preview URL
+        id: compute
+        run: |
+          REPO_NAME=${{ github.repository_name }}
+          BRANCH=${{ github.ref_name }}
+          # replace slashes with hyphens
+          SANITIZED=${BRANCH//\//-}
+          PREVIEW_URL="https://${REPO_NAME}--${SANITIZED}.vercel.app"
+          echo "Preview URL: $PREVIEW_URL"
+          echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+      - name: Wait for deploy to settle
+        run: sleep 15
+
       - name: Set Telegram webhook
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
         run: |
-          echo "Webhook URL: https://${DEPLOYMENT_URL}/api/telegram/webhook"
           pnpm ts-node scripts/setWebhook.ts \
             --token=$TELEGRAM_BOT_TOKEN \
-            --url=https://${DEPLOYMENT_URL}/api/telegram/webhook
+            --url=${{ steps.compute.outputs.preview_url }}/api/telegram/webhook
