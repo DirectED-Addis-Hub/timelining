@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
-  // Vercel verification token sent in the request headers
-  const verificationToken = req.headers.get('x-vercel-verify');
-  const expectedToken = '72062fa2aabce4106de99743f55a6b6a4f0ba296';  // Replace with your token
-
-  // Check if the token matches
-  if (verificationToken === expectedToken) {
-    // Send back the verification header
-    return NextResponse.json({}, { status: 200, headers: { 'x-vercel-verify': expectedToken } });
-  } else {
-    return NextResponse.json({ error: 'Invalid verification token' }, { status: 400 });
-  }
-};
+export async function POST(req: NextRequest) {
+  console.log(req)
+  return NextResponse.json({req}, { 
+    status: 200, 
+    headers: { 'x-vercel-verify': '72062fa2aabce4106de99743f55a6b6a4f0ba296' } 
+  });
+}
+  
     // try {
     //     const logs = req.body;
 

@@ -1,4 +1,4 @@
-import { GET, POST } from "@/app/api/story/webhook/route"; 
+import { POST } from "@/app/api/story/webhook/route"; 
 import { NextRequest, NextResponse } from "next/server";
 
 // Mock Redis client

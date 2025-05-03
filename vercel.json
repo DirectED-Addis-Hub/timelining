@@ -40,7 +40,7 @@
         "methods": ["POST"],
         "headers": {
           "Cache-Control": "no-cache, no-store, must-revalidate",
-          "x-vercel-protection": "true"
+          "x-vercel-protection": "false"
         }
       }
     ]

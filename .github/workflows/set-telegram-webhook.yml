@@ -1,0 +1,38 @@
+name: Set Telegram Webhook on Preview Deploy
+
+on:
+  deployment_status:
+    types: [success]
+
+jobs:
+  set-webhook:
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Set Telegram webhook
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+        run: |
+          echo "Webhook URL: https://${DEPLOYMENT_URL}/api/telegram/webhook"
+          pnpm ts-node scripts/setWebhook.ts \
+            --token=$TELEGRAM_BOT_TOKEN \
+            --url=https://${DEPLOYMENT_URL}/api/telegram/webhook

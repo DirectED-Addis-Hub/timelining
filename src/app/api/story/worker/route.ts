@@ -1,6 +1,5 @@
-import { logger } from '@/lib/logger';
-import { runWorker } from '@/services/worker';
-import { handleError } from '@/lib/utils'; // reuse the error handler
+import { logger } from '../../../../lib/logger';
+import { runWorker } from '../../../../services/worker';
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {

@@ -1,6 +1,6 @@
 import { GET, POST } from '@/app/api/story/worker/route';
 import { runWorker } from '@/services/worker';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
 // Mock the runWorker function used in the GET
 jest.mock("@/services/worker/index", () => ({
