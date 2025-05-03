@@ -103,13 +103,17 @@ const telegramApi = axios.create({
 /**
  * Sends a message to a Telegram chat with timeout and error handling
  */
-export async function sendTelegramMessage(chatId: number, text: string): Promise<void> {
+export async function sendTelegramMessage(chatId: number, text: string, options: any = {}): Promise<{ message_id: number }> {
   logger.info(`Sending message from bot with token ${BOT_TOKEN}`)
   try {
-    await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    const response = await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       chat_id: chatId,
       text,
+      options
     });
+
+    // Return the message ID for future use (to delete it later)
+    return response.data.result;
   } catch (error: unknown) {
     const axiosError = error as { code?: string };
     if (axios.isAxiosError(error) && axiosError.code === 'ECONNABORTED') {
@@ -121,5 +125,22 @@ export async function sendTelegramMessage(chatId: number, text: string): Promise
       error: error instanceof Error ? error.message : 'Unknown error',
     });
     throw new Error('Failed to send Telegram message');
+  }
+}
+
+export async function deleteTelegramMessage(chatId: number, messageId: number): Promise<void> {
+  try {
+    await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/deleteMessage`, {
+      chat_id: chatId,
+      message_id: messageId,
+    });
+    logger.info('Message deleted', { chatId, messageId });
+  } catch (error) {
+    logger.error('Failed to delete Telegram message', {
+      chatId,
+      messageId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    throw new Error('Failed to delete Telegram message');
   }
 }
