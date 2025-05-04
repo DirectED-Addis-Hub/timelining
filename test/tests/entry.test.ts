@@ -1,6 +1,6 @@
 // tests/entry.test.ts
 import { getDriver, closeDriver, initDriver } from '../../src/lib/db/neo4j';
-import { mapTelegramMessageToEntryData, createEntry, getFullEntryData } from '../../src/services/entryService';
+import { mapTelegramMessageToEntryData, createEntry, readEntry } from '../../src/services/entryService';
 import { Session } from 'neo4j-driver';
 import { TelegramMessage } from '../../src/lib/telegram';
 import { FullEntryData } from '../../src/lib/db/models/entry';
@@ -200,7 +200,7 @@ describe('Neo4j Entry Integration', () => {
     const entryData = mapTelegramMessageToEntryData(testTelegramMessage)
     const entryId = await createEntry(entryData);
 
-    const entry = await getFullEntryData(entryId);
+    const entry = await readEntry(entryId);
 
     // Call the test function with the nodes data
     testNodes(testTelegramMessage, entry);

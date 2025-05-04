@@ -406,7 +406,7 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
   }
 }
 
-export async function getFullEntryData(entryId: string): Promise<FullEntryData> {
+export async function readEntry(entryId: string): Promise<FullEntryData> {
   const driver = getDriver();
   const session = driver.session();
 

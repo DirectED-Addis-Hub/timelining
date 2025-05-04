@@ -1,5 +1,5 @@
 import { TelegramMessage } from '../../lib/telegram';
-import { mapTelegramMessageToEntryData, createEntry, logNodeCreation, getFullEntryData } from '../entryService';
+import { mapTelegramMessageToEntryData, createEntry, logNodeCreation, readEntry } from '../entryService';
 import { logger } from '../../lib/logger';
 import { verifyExpectationsMet } from '../entryService';
 
@@ -20,7 +20,7 @@ export async function writeEntry(message: TelegramMessage): Promise<String> {
     try {
         id = await createEntry(entryInput);
 
-        const result = await getFullEntryData(id);
+        const result = await readEntry(id);
 
         verifyExpectationsMet(expected, result)
     } catch (error: unknown) {
