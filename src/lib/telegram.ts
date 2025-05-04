@@ -133,6 +133,29 @@ export async function sendTelegramMessage(chatId: number, text: string, options:
   }
 }
 
+export async function setMessageReaction(chatId: number, messageId: string) {
+  try {
+    await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/setMessageReaction`, {
+      chat_id: chatId,
+      message_id: messageId,
+      reaction: [{ type: 'emoji', emoji: '⚡' }]
+    });
+    return;
+
+  } catch (error: unknown) {
+    const axiosError = error as { code?: string };
+    if (axios.isAxiosError(error) && axiosError.code === 'ECONNABORTED') {
+      logger.warn('Telegram API timeout', { chatId });
+      throw new Error('Telegram API timeout');
+    }
+    logger.error('Failed to add message reaction', {
+      chatId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    throw new Error('Failed to send Telegram message');
+  }
+}
+
 export async function deleteTelegramMessage(chatId: number, messageId: number): Promise<void> {
   try {
     await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/deleteMessage`, {

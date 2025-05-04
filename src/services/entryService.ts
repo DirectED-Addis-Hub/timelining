@@ -185,8 +185,17 @@ export function mapTelegramMessageToEntryData(msg: TelegramMessage): FullEntryIn
             fileUniqueId: rawVideo.file_unique_id,
             fileSize: rawVideo.file_size,
           }]
-      : []
-      }
+      : [], 
+    videoNote: msg.message.video_note
+      ? {
+          fileId: msg.message.video_note.file_id,
+          fileUniqueId: msg.message.video_note.file_unique_id,
+          fileSize: msg.message.video_note.file_size,
+          duration: msg.message.video_note.duration,
+          length: msg.message.video_note.length,
+        }
+      : undefined,
+  }
 }
 
 export interface ExpectedEntryMap {
@@ -201,7 +210,7 @@ export function logNodeCreation(input: FullEntryInputData): ExpectedEntryMap {
   if (input.textContent) logMessages['textContent'] = 1;
   if (input.captionContent) logMessages['captionContent'] = 1;
   if (input.entities?.length > 0) logMessages['entities'] = input.entities.length;
-  if (input.photos?.length > 0) logMessages['photos'] = input.photos.length;
+  if (input.photos?.length > 0) logMessages['photos'] = 1; // Only 1 although array because we take only the last (largest) fileId
   if (input.voice) logMessages['voice'] = 1;
   if (input.videos?.length > 0) logMessages['videos'] = input.videos.length;
   if (input.videoNote) logMessages['videoNote'] = 1;
@@ -272,18 +281,19 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
         ` : ''}
 
         ${input.photos?.length > 0 ? `
-        UNWIND range(0, size($photoFileIds) - 1) AS idxPhoto
-        CREATE (pht:Photo {
-          id: randomUUID(),
-          fileId: $photoFileIds[idxPhoto],
-          fileUniqueId: $photoFileUniqueIds[idxPhoto],
-          fileSize: $photoFileSizes[idxPhoto],
-          width: $photoWidths[idxPhoto],
-          height: $photoHeights[idxPhoto]
-        })
-        MERGE (e)-[:HAS_PHOTO]->(pht)
-        WITH e, p, c
-        ` : ''}
+          WITH e, p, c,
+            size($photoFileIds) - 1 AS lastIdx
+          CREATE (pht:Photo {
+            id: randomUUID(),
+            fileId: $photoFileIds[lastIdx],
+            fileUniqueId: $photoFileUniqueIds[lastIdx],
+            fileSize: $photoFileSizes[lastIdx],
+            width: $photoWidths[lastIdx],
+            height: $photoHeights[lastIdx]
+          })
+          MERGE (e)-[:HAS_PHOTO]->(pht)
+          WITH e, p, c
+          ` : ''}
 
         ${input.voice ? `
         CREATE (vn:Voice {

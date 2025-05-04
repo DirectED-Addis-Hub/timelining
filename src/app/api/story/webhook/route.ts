@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '../../../../lib/logger';
 import { redis } from '../../../../lib/redis';
-import { deleteTelegramMessage, sendTelegramMessage } from '../../../../lib/telegram';
+import { setMessageReaction } from '../../../../lib/telegram';
 import { handleError } from '../../../../lib/utils';
 
 export async function POST(request: NextRequest) {
@@ -20,16 +20,7 @@ export async function POST(request: NextRequest) {
     logger.info(`Message queued. chat ID: ${chatId}, message ID: ${messageId} `);
 
     // Send the silent reply (emoji)
-    const msg = await sendTelegramMessage(chatId, "✅", {
-      reply_to_message_id: messageId
-    });
-
-    // Asynchronously schedule the deletion for next time the function is called
-    Promise.resolve().then(() => {
-      setTimeout(async () => {
-        await deleteTelegramMessage(chatId, msg.message_id);
-      }, 1000);
-    });
+    await setMessageReaction(chatId, messageId);
 
     return NextResponse.json({ status: 'ok' });
   } catch (error) {
