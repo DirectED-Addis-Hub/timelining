@@ -24,6 +24,7 @@ export async function runWorker(): Promise<WorkerResult> {
     const startTime = Date.now();
     let processedCount = 0;
     let failedCount = 0;
+    let lastFailedMessage: number | undefined = undefined;
 
     try {
         // Process messages in batches
@@ -52,6 +53,7 @@ export async function runWorker(): Promise<WorkerResult> {
                     logger.info('Wrote message metadata to db');
                     processedCount++;
                     await redis.lpush('timeline_entry', recordId)
+                    lastFailedMessage = undefined; // Reset on success
                 } else {
                     failedCount++;
                     // Re-queue failed messages
@@ -60,6 +62,15 @@ export async function runWorker(): Promise<WorkerResult> {
             } catch (err) {
                 logger.error('Unexpected error during processing:', { error: err });
                 failedCount++;
+
+                // If it's the same message as last time, assume stuck and stop
+                if (lastFailedMessage === messageData.message?.message_id) {
+                    logger.warn('Detected repeated failure on same message. Stopping worker to avoid loop.');
+                    await redis.rpush('telegram_messages', message); // Keep it for manual retry
+                    break;
+                }
+                
+                lastFailedMessage = messageData.message?.message_id;
                 await redis.rpush('telegram_messages', message);
             }
         }

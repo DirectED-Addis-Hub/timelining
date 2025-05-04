@@ -8,6 +8,40 @@ dotenv.config();
 const BOT_TOKEN = process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development" ? process.env.TELEGRAM_BOT_TOKEN_DEV : process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_TIMEOUT = 5000; // Set your desired timeout
 
+type TelegramVideo = {
+  duration: number;
+  width: number;
+  height: number;
+  file_name?: string;
+  mime_type: string;
+  thumbnail?: {
+    file_id: string;
+    file_unique_id: string;
+    file_size: number;
+    width: number;
+    height: number;
+  };
+  thumb?: {
+    file_id: string;
+    file_unique_id: string;
+    file_size: number;
+    width: number;
+    height: number;
+  };
+  file_id: string;
+  file_unique_id: string;
+  file_size: number;
+};
+
+type TelegramPhoto = {
+  file_id: string;
+  file_unique_id: string;
+  file_size: number;
+  width: number;
+  height: number;
+};
+
+
 export interface TelegramMessage {
   update_id: number;
   message?: {
@@ -33,13 +67,8 @@ export interface TelegramMessage {
       type: 'mention' | 'hashtag' | 'bot_command' | 'url' | 'email' | 'phone_number' | 'bold' | 'italic' | 'code' | 'pre' | 'text_link' | 'text_mention';
     }>;
     caption?: string; // Caption for photos or other media
-    photo?: Array<{
-      file_id: string;
-      file_unique_id: string;
-      file_size: number;
-      width: number;
-      height: number;
-    }>; // Array for photo objects
+    reply_to_message?: TelegramMessage['message']; // Allow for replying to other messges
+    photo?: TelegramPhoto | TelegramPhoto[];
     voice?: {
       duration: number;
       mime_type: string;
@@ -47,41 +76,18 @@ export interface TelegramMessage {
       file_unique_id: string;
       file_size: number;
     }; // Voice message properties
-    video?: {
-      duration: number;
-      width: number,
-      height: number,
-      file_name: string,
-      mime_type: string,
-      thumbnail: {
-        file_id: string,
-        file_unique_id: string,
-        file_size: number,
-        width: number,
-        height: number
-      },
-      thumb: {
-        file_id: string,
-        file_unique_id: string,
-        file_size: number,
-        width: number,
-        height: number
-      },
-      file_id: string,
-      file_unique_id: string,
-      file_size: number
-    }; // Video message properties
+    video?: TelegramVideo | TelegramVideo[]; // Video message properties
     video_note?: {
       duration: number;
       length: number;
-      thumbnail: {
+      thumbnail?: {
         file_id: string;
         file_unique_id: string;
         file_size: number;
         width: number;
         height: number;
       };
-      thumb: {
+      thumb?: {
         file_id: string;
         file_unique_id: string;
         file_size: number;
@@ -91,7 +97,7 @@ export interface TelegramMessage {
       file_id: string;
       file_unique_id: string;
       file_size: number;
-    };    
+    }; // Video note (voice note but video) properties
   };
 }
 

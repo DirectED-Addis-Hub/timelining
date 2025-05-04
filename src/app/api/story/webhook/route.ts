@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     logger.info(`Message queued. chat ID: ${chatId}, message ID: ${messageId} `);
 
     // Send the silent reply (emoji)
-    const msg = await sendTelegramMessage(chatId, "✅ Added to processing queue", {
+    const msg = await sendTelegramMessage(chatId, "✅", {
       reply_to_message_id: messageId
     });
 
