@@ -35,6 +35,11 @@
         }
       },
       {
+        "src": "/api/story/[handle]",
+        "dest": "/src/app/api/story/[handle]/route.ts",
+        "methods": ["GET"]
+      },
+      {
         "src": "/api/docs/log-drain",
         "dest": "/src/app/api/docs/log-drain/route.ts",
         "methods": ["POST"],

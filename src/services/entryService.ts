@@ -1,5 +1,8 @@
 import { getDriver, initDriver } from '../lib/db/neo4j';
 import { TelegramMessage } from '../lib/telegram';
+import type { QueryResult, ManagedTransaction } from 'neo4j-driver';
+import { logger } from '../lib/logger';
+
 import { 
   FullEntryData, 
   EntryNode, 
@@ -14,9 +17,8 @@ import {
   VideoNode,
   VideoNoteNode
  } from '../lib/db/models/entry'; 
- import { logger } from '../lib/logger';
 
- function mapEntryNode(node: any): EntryNode {
+function mapEntryNode(node: any): EntryNode {
   return {
     id: node.properties.id,
     updateId: node.properties.updateId,
@@ -237,7 +239,7 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
   logger.debug(input)
 
   try {
-    const result = await session.executeWrite(async (tx) => {
+    const result = await session.executeWrite(async (tx: ManagedTransaction): Promise<QueryResult> => {
       const cypherQuery = `
         MERGE (p:Participant {handle: $senderHandle})
         MERGE (c:TelegramChat {id: $chatId})
