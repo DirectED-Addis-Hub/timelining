@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
-import neo4j from 'neo4j-driver';
 
 export async function GET(
   req: NextRequest, 
@@ -10,7 +9,7 @@ export async function GET(
   const handle = context.params.handle;
   const driver = await initDriver();
   let session;
-  session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
+  session = driver.session({ database: 'neo4j' })
 
   logger.info(`Fetching connected nodes for participant handle: ${handle}`);
 

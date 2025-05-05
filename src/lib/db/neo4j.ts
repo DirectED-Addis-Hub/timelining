@@ -1,4 +1,4 @@
-import neo4j from 'neo4j-driver';
+import neo4j, { Driver } from 'neo4j-driver';
 import { logger } from '../logger';
 
 // Environment variables
@@ -7,7 +7,7 @@ const user = process.env.NEO4J_USERNAME || 'neo4j';
 const password = process.env.NEO4J_PASSWORD || 'neo4jtesting';
 
 // Use the type inferred from neo4j.driver() for best compatibility
-let _driver: ReturnType<typeof neo4j.driver> | null = null;
+let _driver: Driver | null;
 
 export function getDriver() {
   if (!_driver) {
@@ -23,7 +23,7 @@ export async function initDriver() {
 
   try {
     logger.info('Verifying connection to Neo4j...');
-    const serverInfo = await driver.getServerInfo(); 
+    const serverInfo = await driver.verifyConnectivity(); 
     logger.info('Server Info:', serverInfo);
     return driver;
   } catch (err) {

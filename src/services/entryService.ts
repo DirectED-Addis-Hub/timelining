@@ -1,6 +1,6 @@
 import { getDriver, initDriver } from '../lib/db/neo4j';
 import { TelegramMessage } from '../lib/telegram';
-import type { QueryResult, ManagedTransaction } from 'neo4j-driver';
+import type { QueryResult, Transaction } from 'neo4j-driver';
 import { logger } from '../lib/logger';
 
 import { 
@@ -239,7 +239,7 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
   logger.debug(input)
 
   try {
-    const result = await session.executeWrite(async (tx: ManagedTransaction): Promise<QueryResult> => {
+    const result = await session.writeTransaction(async (tx: Transaction): Promise<QueryResult> => {
       const cypherQuery = `
         MERGE (p:Participant {handle: $senderHandle})
         MERGE (c:TelegramChat {id: $chatId})

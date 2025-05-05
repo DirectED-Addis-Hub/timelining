@@ -19,7 +19,7 @@
     "axios": "^1.8.2",
     "dotenv": "^16.4.7",
     "inquirer": "^12.6.0",
-    "neo4j-driver": "^5.28.1",
+    "neo4j-driver": "4",
     "next": "^15.3.1",
     "node-telegram-bot-api": "^0.63.0",
     "supertest": "^7.1.0",
