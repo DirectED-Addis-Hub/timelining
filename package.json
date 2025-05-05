@@ -11,8 +11,8 @@
     "set:webhook": "tsx scripts/setWebhook.ts",
     "get:webhook": "tsx scripts/getWebhook.ts",
     "triggerWorker": "tsx scripts/triggerWorker.ts", 
-    "dev": "vercel dev",
-    "build": "vercel build"
+    "dev": "pnpm dev",
+    "build": "pnpm run build"
   },
   "dependencies": {
     "@upstash/redis": "^1.34.5",
