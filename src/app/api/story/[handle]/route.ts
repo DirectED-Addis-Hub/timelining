@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
 
-export async function GET(
-  req: NextRequest, 
-  context: { params: { handle: string } 
+export async function GET(req: NextRequest, {
+  params,
+}: {
+  params: Promise<{ handle: string }>
 }) {
-  const handle = context.params.handle;
+  const { handle } = await params
   const driver = await initDriver();
-  let session;
-  session = driver.session({ database: 'neo4j' })
+  const session = driver.session({ database: 'neo4j' })
 
   logger.info(`Fetching connected nodes for participant handle: ${handle}`);
 

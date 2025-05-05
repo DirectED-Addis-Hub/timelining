@@ -41,6 +41,15 @@ type TelegramPhoto = {
   height: number;
 };
 
+type SendMessageOptions = {
+  parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2';
+  disable_web_page_preview?: boolean;
+  disable_notification?: boolean;
+  reply_to_message_id?: number;
+  reply_markup?: {
+    inline_keyboard?: Array<Array<{ text: string; callback_data: string }>>;
+  };
+};
 
 export interface TelegramMessage {
   update_id: number;
@@ -109,7 +118,7 @@ const telegramApi = axios.create({
 /**
  * Sends a message to a Telegram chat with timeout and error handling
  */
-export async function sendTelegramMessage(chatId: number, text: string, options: any = {}): Promise<{ message_id: number }> {
+export async function sendTelegramMessage(chatId: number, text: string, options: SendMessageOptions = {}): Promise<{ message_id: number }> {
   try {
     const response = await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       chat_id: chatId,

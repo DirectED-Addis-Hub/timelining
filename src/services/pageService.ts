@@ -4,8 +4,7 @@ import { PageView } from '../lib/db/models/page';
 // Function to record page views
 export async function recordPageView({ pageUrl, timestamp, userId }: PageView) {
   const driver = await initDriver();
-  let session;
-  session = driver.session({ database: 'neo4j' })
+  const session = driver.session({ database: 'neo4j' })
 
   try {
     const query = `
@@ -36,8 +35,7 @@ export async function recordPageView({ pageUrl, timestamp, userId }: PageView) {
 // Function to get page details (could be extended for more detailed querying)
 export async function getPageDetails(pageUrl: string) {
   const driver = await initDriver();
-  let session;
-  session = driver.session({ database: 'neo4j' })
+  const session = driver.session({ database: 'neo4j' })
 
   try {
     const query = 'MATCH (p:Page {url: $pageUrl}) RETURN p';

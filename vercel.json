@@ -1,15 +1,5 @@
 {
     "version": 2,
-    "builds": [
-      {
-        "src": "src/app/api/**/*.ts",
-        "use": "@vercel/node",
-        "config": {
-          "maxDuration": 10,
-          "memory": 1024
-        }
-      }
-    ],
     "env": {
       "NODE_VERSION": "20.x"
     },
@@ -33,11 +23,6 @@
           "Cache-Control": "no-cache, no-store, must-revalidate",
           "x-vercel-protection": "true"
         }
-      },
-      {
-        "src": "/api/story/[handle]",
-        "dest": "/src/app/api/story/[handle]/route.ts",
-        "methods": ["GET"]
       },
       {
         "src": "/api/docs/log-drain",

@@ -3,7 +3,7 @@ import { mapTelegramMessageToEntryData, createEntry, logNodeCreation, readEntry 
 import { logger } from '../../lib/logger';
 import { verifyExpectationsMet } from '../entryService';
 
-export async function writeEntry(message: TelegramMessage): Promise<String> {
+export async function writeEntry(message: TelegramMessage): Promise<string> {
 
     let entryInput;
     let id;

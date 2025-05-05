@@ -1,8 +1,8 @@
 import { logger } from '../../../../lib/logger';
 import { runWorker } from '../../../../services/worker';
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   logger.info('Cron job triggered.');
 
   try {

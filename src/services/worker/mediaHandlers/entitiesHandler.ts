@@ -1,5 +1,4 @@
 import { MessageHandler } from '../handlerInterface';
-import { createEntry } from '../../entryService';
 
 export const entitiesHandler: MessageHandler = {
     canHandle(message) {

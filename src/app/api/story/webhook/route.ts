@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '../../../../lib/logger';
-import { redis } from '../../../../lib/redis';
-import { setMessageReaction } from '../../../../lib/telegram';
-import { handleError } from '../../../../lib/utils';
+import { logger } from '@/lib/logger';
+import { redis } from '@/lib/redis';
+import { setMessageReaction } from '@/lib/telegram';
+import { handleError } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
   if (request.method !== 'POST') {

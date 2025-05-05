@@ -1,6 +1,6 @@
 import { getDriver, initDriver } from '../lib/db/neo4j';
 import { TelegramMessage } from '../lib/telegram';
-import type { QueryResult, Transaction } from 'neo4j-driver';
+import type { QueryResult, Transaction, Node } from 'neo4j-driver';
 import { logger } from '../lib/logger';
 
 import { 
@@ -18,7 +18,7 @@ import {
   VideoNoteNode
  } from '../lib/db/models/entry'; 
 
-function mapEntryNode(node: any): EntryNode {
+function mapEntryNode(node: Node): EntryNode {
   return {
     id: node.properties.id,
     updateId: node.properties.updateId,
@@ -27,13 +27,13 @@ function mapEntryNode(node: any): EntryNode {
   };
 }
 
-function mapParticipantNode(node: any): ParticipantNode {
+function mapParticipantNode(node: Node): ParticipantNode {
   return {
     handle: node.properties.handle,
   };
 }
 
-function mapTelegramChatNode(node: any): TelegramChatNode {
+function mapTelegramChatNode(node: Node): TelegramChatNode {
   return {
     id: node.properties.id,
     type: node.properties.type,
@@ -42,21 +42,21 @@ function mapTelegramChatNode(node: any): TelegramChatNode {
   };
 }
 
-function mapTextContentNode(node: any): TextContentNode {
+function mapTextContentNode(node: Node): TextContentNode {
   return {
     id: node.properties.id,
     text: node.properties.text,
   };
 }
 
-function mapCaptionContentNode(node: any): CaptionContentNode {
+function mapCaptionContentNode(node: Node): CaptionContentNode {
   return {
     id: node.properties.id,
     caption: node.properties.caption,
   };
 }
 
-function mapEntityNodes(entities: any[]): EntityNode[] {
+function mapEntityNodes(entities: Node[]): EntityNode[] {
   logger.info(entities)
   return entities.map((entity) => ({
     id: entity.properties.id,
@@ -66,7 +66,7 @@ function mapEntityNodes(entities: any[]): EntityNode[] {
   }));
 }
 
-function mapPhotoNodes(photos: any[]): PhotoNode[] {
+function mapPhotoNodes(photos: Node[]): PhotoNode[] {
   return photos.map((photo) => ({
     id: photo.properties.id,
     fileId: photo.properties.fileId,
@@ -77,7 +77,7 @@ function mapPhotoNodes(photos: any[]): PhotoNode[] {
   }));
 }
 
-function mapVoiceNode(node: any): VoiceNode {
+function mapVoiceNode(node: Node): VoiceNode {
   return {
     id: node.properties.id,
     fileId: node.properties.fileId,
@@ -88,7 +88,7 @@ function mapVoiceNode(node: any): VoiceNode {
   };
 }
 
-function mapVideoNodes(videos: any[]): VideoNode[] {
+function mapVideoNodes(videos: Node[]): VideoNode[] {
   return videos.map((video) => ({
     id: video.properties.id,
     duration: video.properties.duration,
@@ -101,7 +101,7 @@ function mapVideoNodes(videos: any[]): VideoNode[] {
   }));
 }
 
-function mapVideoNoteNode(node: any): VideoNoteNode {
+function mapVideoNoteNode(node: Node): VideoNoteNode {
   return {
     id: node.properties.id,
     duration: node.properties.duration,
@@ -233,8 +233,7 @@ export function logNodeCreation(input: FullEntryInputData): ExpectedEntryMap {
 
 export async function createEntry(input: FullEntryInputData): Promise<string> {
   const driver = await initDriver();
-  let session;
-  session = driver.session({ database: 'neo4j' })
+  const session = driver.session({ database: 'neo4j' })
 
   logger.debug(input)
 
