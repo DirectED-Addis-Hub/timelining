@@ -6,32 +6,7 @@
     "crons": [
       {
         "path": "/api/worker",
-        "schedule": "*/10 * * * *"
-      }
-    ], 
-    "routes": [
-      {
-        "src": "/",
-        "dest": "/src/app/api/story/webhook/route.ts",
-        "methods": ["POST"]
-      },
-      {
-        "src": "/api/worker",
-        "dest": "/src/app/api/story/worker/route.ts",
-        "methods": ["GET"],
-        "headers": {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "x-vercel-protection": "true"
-        }
-      },
-      {
-        "src": "/api/docs/log-drain",
-        "dest": "/src/app/api/docs/log-drain/route.ts",
-        "methods": ["POST"],
-        "headers": {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "x-vercel-protection": "false"
-        }
+        "schedule": "*/15 * * * *"
       }
     ]
   }

@@ -1,7 +1,8 @@
 import { TelegramMessage } from '../../lib/telegram';
-import { mapTelegramMessageToEntryData, createEntry, logNodeCreation, readEntry } from '../entryService';
+import { createEntry, logNodeCreation, readEntry } from '../entryService';
 import { logger } from '../../lib/logger';
 import { verifyExpectationsMet } from '../entryService';
+import { mapTelegramMessageToEntryData } from '@/lib/db/mappers';
 
 export async function writeEntry(message: TelegramMessage): Promise<string> {
 

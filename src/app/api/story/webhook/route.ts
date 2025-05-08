@@ -6,6 +6,7 @@ import { handleError } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
   if (request.method !== 'POST') {
+    logger.info(request.method)
     return new NextResponse('Method Not Allowed', { status: 405 });
   }
   
@@ -16,10 +17,18 @@ export async function POST(request: NextRequest) {
     const chatId = data.message?.chat?.id;
     const messageId = data.message?.message_id;
 
+    const topicName = data.message?.reply_to_message?.forum_topic_created?.name;
+    logger.info(data);
+
+    if (!topicName || !topicName.includes('_bot')) {
+      logger.info('Message ignored.');
+      return NextResponse.json({ status: 'ignored' });
+    }
+
     await redis.lpush('telegram_messages', JSON.stringify(data));
     logger.info(`Message queued. chat ID: ${chatId}, message ID: ${messageId} `);
 
-    // Send the silent reply (emoji)
+    // Send silent reply
     await setMessageReaction(chatId, messageId);
 
     return NextResponse.json({ status: 'ok' });
