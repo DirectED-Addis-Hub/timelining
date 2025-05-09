@@ -17,91 +17,102 @@ import {
     VideoNoteNode
 } from '@/lib/db/models/entry'; 
 
-export function mapTelegramMessageToEntryData(msg: TelegramMessage): FullEntryInputData {
+export function mapTelegramMessageToEntryInputData(msg: TelegramMessage): FullEntryInputData {
     if (!msg.message || !msg.message.chat) {
-    throw new Error('Invalid Telegram message: missing message or chat.');
+        throw new Error('Invalid Telegram message: missing message or chat.');
     }
+
+    const replyTo = !!msg.message.reply_to_message && !msg.message.reply_to_message.forum_topic_created
+        ? msg.message.reply_to_message
+        : undefined;
     
     const rawVideo = msg.message.video;
 
     return {
-    entry: {
-        updateId: msg.update_id,
-        messageId: msg.message.message_id,
-        date: new Date(msg.message.date * 1000).toISOString(),
-    },
-    participant: {
-        handle: msg.message.from?.username || String(msg.message.from?.id) || 'unknown',
-    },
-    chat: {
-        id: msg.message.chat.id,
-        firstName: msg.message.chat.first_name,
-        username: msg.message.chat.username,
-        type: msg.message.chat.type,
-    },
-    textContent: msg.message.text ? { text: msg.message.text } : undefined,
-    captionContent: msg.message.caption ? { caption: msg.message.caption } : undefined,
-    entities: msg.message.entities?.map(entity => ({
-        offset: entity.offset,
-        length: entity.length,
-        type: entity.type,
-    })) || [],
-    photos: msg.message.photo
-        ? Array.isArray(msg.message.photo)
-        ? msg.message.photo.map(photo => ({
-            fileId: photo.file_id,
-            fileUniqueId: photo.file_unique_id,
-            fileSize: photo.file_size,
-            width: photo.width,
-            height: photo.height,
-            }))
-        : [{
-            fileId: msg.message.photo.file_id,
-            fileUniqueId: msg.message.photo.file_unique_id,
-            fileSize: msg.message.photo.file_size,
-            width: msg.message.photo.width,
-            height: msg.message.photo.height,
-            }]
-        : [],
-    voice: msg.message.voice
-        ? {
-            fileId: msg.message.voice.file_id,
-            fileUniqueId: msg.message.voice.file_unique_id,
-            fileSize: msg.message.voice.file_size,
-            duration: msg.message.voice.duration,
-            mimeType: msg.message.voice.mime_type,
-        }
-        : undefined,
-    videos: rawVideo
-        ? Array.isArray(rawVideo)
-        ? rawVideo.map(video => ({
-            duration: video.duration,
-            width: video.width,
-            height: video.height,
-            mimeType: video.mime_type,
-            fileId: video.file_id,
-            fileUniqueId: video.file_unique_id,
-            fileSize: video.file_size,
-            }))
-        : [{
-            duration: rawVideo.duration,
-            width: rawVideo.width,
-            height: rawVideo.height,
-            mimeType: rawVideo.mime_type,
-            fileId: rawVideo.file_id,
-            fileUniqueId: rawVideo.file_unique_id,
-            fileSize: rawVideo.file_size,
-            }]
-        : [], 
-    videoNote: msg.message.video_note
-        ? {
-            fileId: msg.message.video_note.file_id,
-            fileUniqueId: msg.message.video_note.file_unique_id,
-            fileSize: msg.message.video_note.file_size,
-            duration: msg.message.video_note.duration,
-            length: msg.message.video_note.length,
-        }
-        : undefined,
+        entry: {
+            updateId: msg.update_id,
+            messageId: msg.message.message_id,
+            date: new Date(msg.message.date * 1000).toISOString(),
+        },
+        participant: {
+            handle: msg.message.from?.username || String(msg.message.from?.id) || 'unknown',
+        },
+        chat: {
+            id: msg.message.chat.id,
+            title: msg.message.chat.title,
+            firstName: msg.message.chat.first_name,
+            username: msg.message.chat.username,
+            type: msg.message.chat.type,
+            isForum: msg.message.chat.is_forum,
+        },
+        replyTo: replyTo
+            ? {
+                messageId: replyTo.message_id
+            }
+            : undefined,
+        textContent: msg.message.text ? { text: msg.message.text } : undefined,
+        captionContent: msg.message.caption ? { caption: msg.message.caption } : undefined,
+        entities: msg.message.entities?.map(entity => ({
+            offset: entity.offset,
+            length: entity.length,
+            type: entity.type,
+        })) || [],
+        photos: msg.message.photo
+            ? Array.isArray(msg.message.photo)
+            ? msg.message.photo.map(photo => ({
+                fileId: photo.file_id,
+                fileUniqueId: photo.file_unique_id,
+                fileSize: photo.file_size,
+                width: photo.width,
+                height: photo.height,
+                }))
+            : [{
+                fileId: msg.message.photo.file_id,
+                fileUniqueId: msg.message.photo.file_unique_id,
+                fileSize: msg.message.photo.file_size,
+                width: msg.message.photo.width,
+                height: msg.message.photo.height,
+                }]
+            : [],
+        voice: msg.message.voice
+            ? {
+                fileId: msg.message.voice.file_id,
+                fileUniqueId: msg.message.voice.file_unique_id,
+                fileSize: msg.message.voice.file_size,
+                duration: msg.message.voice.duration,
+                mimeType: msg.message.voice.mime_type,
+            }
+            : undefined,
+        videos: rawVideo
+            ? Array.isArray(rawVideo)
+            ? rawVideo.map(video => ({
+                duration: video.duration,
+                width: video.width,
+                height: video.height,
+                mimeType: video.mime_type,
+                fileId: video.file_id,
+                fileUniqueId: video.file_unique_id,
+                fileSize: video.file_size,
+                }))
+            : [{
+                duration: rawVideo.duration,
+                width: rawVideo.width,
+                height: rawVideo.height,
+                mimeType: rawVideo.mime_type,
+                fileId: rawVideo.file_id,
+                fileUniqueId: rawVideo.file_unique_id,
+                fileSize: rawVideo.file_size,
+                }]
+            : [], 
+        videoNote: msg.message.video_note
+            ? {
+                fileId: msg.message.video_note.file_id,
+                fileUniqueId: msg.message.video_note.file_unique_id,
+                fileSize: msg.message.video_note.file_size,
+                duration: msg.message.video_note.duration,
+                length: msg.message.video_note.length,
+            }
+            : undefined,
     }
 }
   
@@ -126,6 +137,8 @@ function mapTelegramChatNode(node: Node): TelegramChatNode {
         type: node.properties.type,
         firstName: node.properties.firstName,
         username: node.properties.username,
+        chatFirstName: node.properties.chatFirstName,
+        chatUsername: node.properties.chatUsername
     };
 }
 

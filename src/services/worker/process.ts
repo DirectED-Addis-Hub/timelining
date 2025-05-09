@@ -2,7 +2,7 @@ import { TelegramMessage } from '../../lib/telegram';
 import { createEntry, logNodeCreation, readEntry } from '../entryService';
 import { logger } from '../../lib/logger';
 import { verifyExpectationsMet } from '../entryService';
-import { mapTelegramMessageToEntryData } from '@/lib/db/mappers';
+import { mapTelegramMessageToEntryInputData } from '@/lib/db/mappers';
 
 export async function writeEntry(message: TelegramMessage): Promise<string> {
 
@@ -10,7 +10,7 @@ export async function writeEntry(message: TelegramMessage): Promise<string> {
     let id;
 
     try {
-        entryInput = mapTelegramMessageToEntryData(message);
+        entryInput = mapTelegramMessageToEntryInputData(message);
     } catch (error) {
         logger.error('Failed to create full entry data object:', error);
         throw error;
@@ -19,20 +19,32 @@ export async function writeEntry(message: TelegramMessage): Promise<string> {
     const expected = logNodeCreation(entryInput);
 
     try {
-        id = await createEntry(entryInput);
+      try {
+          id = await createEntry(entryInput);
+      } catch (error) {
+          logger.error("Failed to create entry:", error);
+          throw error;
+      }
 
-        const result = await readEntry(id);
+      let result;
+      try {
+          result = await readEntry(id);
+      } catch (error) {
+          logger.error("Failed to read entry after creation:", error);
+          throw error;
+      }
 
-        verifyExpectationsMet(expected, result)
+      verifyExpectationsMet(expected, result);
+
     } catch (error: unknown) {
         if (error instanceof Error) {
-          logger.error("Entry write failed: " + error.message);
-          throw error;
+            logger.error("Entry write failed: " + error.message);
+            throw error;
         } else {
-          logger.error("Entry write failed with non-Error object:", error);
-          throw new Error("Unknown error occurred during entry write.");
+            logger.error("Entry write failed with non-Error object:", error);
+            throw new Error("Unknown error occurred during entry write.");
         }
-      }
+    }
 
     return id;
 }

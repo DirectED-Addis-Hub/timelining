@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const topicName = data.message?.reply_to_message?.forum_topic_created?.name;
     logger.info(data);
 
-    if (!topicName || !topicName.includes('_bot')) {
+    if (!(data.message?.chat?.type === 'private') && (!topicName || !topicName.includes('_bot'))) {
       logger.info('Message ignored.');
       return NextResponse.json({ status: 'ignored' });
     }

@@ -7,6 +7,8 @@ export interface TelegramChatNode {
   firstName?: string;
   username?: string;
   type: 'private' | 'group' | 'supergroup' | 'channel';
+  chatFirstName?: string;
+  chatUsername?: string;
 }
 
 export interface EntryNode {
@@ -95,9 +97,11 @@ export interface FullEntryInputData {
   };
   chat: {
     id: number;
+    title?: string; 
     firstName?: string;
     username?: string;
     type: 'private' | 'group' | 'supergroup' | 'channel';
+    isForum?: boolean;
   };
   replyTo?: {
     messageId: number;

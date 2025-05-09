@@ -64,9 +64,11 @@ export interface TelegramMessage {
     };
     chat?: {
       id: number;
+      title?: string;
       first_name?: string;
       username?: string;
       type: 'private' | 'group' | 'supergroup' | 'channel';
+      is_forum?: boolean;
     };
     date: number;
     text?: string;
@@ -107,6 +109,10 @@ export interface TelegramMessage {
       file_unique_id: string;
       file_size: number;
     }; // Video note (voice note but video) properties
+    forum_topic_created?: {
+      name: string;
+      icon_color: number;
+    };
   };
 }
 

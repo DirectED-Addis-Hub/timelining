@@ -50,9 +50,15 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
         MERGE (p:Participant {handle: $senderHandle})
         MERGE (c:TelegramChat {id: $chatId})
         ON CREATE SET 
-          c.firstName = $chatFirstName,
-          c.username = $chatUsername,
-          c.type = $chatType
+          c.type = $chatType,
+          c.firstName = CASE 
+            WHEN $chatType = 'private' AND $chatFirstName IS NOT NULL THEN $chatFirstName 
+            ELSE NULL 
+          END,
+          c.username = CASE 
+            WHEN $chatType = 'private' AND $chatUsername IS NOT NULL THEN $chatUsername 
+            ELSE NULL 
+          END
         CREATE (e:Entry {
           id: randomUUID(),
           updateId: $updateId,
@@ -156,8 +162,8 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
       const queryParams = {
         senderHandle: input.participant.handle,
         chatId: input.chat.id,
-        chatFirstName: input.chat.firstName,
-        chatUsername: input.chat.username,
+        chatFirstName: input.chat.type === 'private' ? input.chat.firstName || null : null,
+        chatUsername: input.chat.type === 'private' ? input.chat.username || null : null,
         chatType: input.chat.type,
         updateId: input.entry.updateId,
         messageId: input.entry.messageId,
@@ -200,13 +206,13 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
 
       // Return the result
       return result;
-  });
+    });
 
-  if (!result.records.length) {
-    logger.error("No records returned!", { resultSummary: result.summary });
-    throw new Error("No records returned from database.");
-  }
-  return result.records[0].get('id');
+    if (!result.records.length) {
+      logger.error("No records returned!", { resultSummary: result.summary });
+      throw new Error("No records returned from database.");
+    }
+    return result.records[0].get('id'); 
 
   } catch (error) {
     logger.error("Error creating entry node:", error);
