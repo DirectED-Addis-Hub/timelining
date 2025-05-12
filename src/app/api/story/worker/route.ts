@@ -1,5 +1,5 @@
-import { logger } from '../../../../lib/logger';
-import { runWorker } from '../../../../services/worker';
+import { logger } from '@/lib/logger';
+import { runWorker } from '@/services/worker';
 import { NextResponse } from 'next/server'
 
 export async function GET() {
