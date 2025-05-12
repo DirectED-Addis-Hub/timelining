@@ -98,8 +98,7 @@ export interface FullEntryInputData {
   chat: {
     id: number;
     title?: string; 
-    firstName?: string;
-    username?: string;
+    name: string;
     type: 'private' | 'group' | 'supergroup' | 'channel';
     isForum?: boolean;
   };

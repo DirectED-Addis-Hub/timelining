@@ -162,8 +162,7 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
       const queryParams = {
         senderHandle: input.participant.handle,
         chatId: input.chat.id,
-        chatFirstName: input.chat.type === 'private' ? input.chat.firstName || null : null,
-        chatUsername: input.chat.type === 'private' ? input.chat.username || null : null,
+        chatName: input.chat.name,
         chatType: input.chat.type,
         updateId: input.entry.updateId,
         messageId: input.entry.messageId,

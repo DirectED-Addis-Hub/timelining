@@ -35,7 +35,12 @@ async function getCurrentWebhook(token: string) {
 
 async function setWebhook(token: string, url: string) {
   const endpoint = `https://api.telegram.org/bot${token}/setWebhook`;
-  const response = await axios.post(endpoint, { url });
+  const response = await axios.post(endpoint, { 
+    url, 
+    allowed_updates: [
+      "message",
+    ],
+   });
   return response.data;
 }
 
