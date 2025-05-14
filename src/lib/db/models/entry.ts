@@ -4,11 +4,10 @@ export interface ParticipantNode {
 
 export interface TelegramChatNode {
   id: number;
-  firstName?: string;
+  title?: string;
   username?: string;
+  topic?: string;
   type: 'private' | 'group' | 'supergroup' | 'channel';
-  chatFirstName?: string;
-  chatUsername?: string;
 }
 
 export interface EntryNode {
@@ -98,9 +97,10 @@ export interface FullEntryInputData {
   chat: {
     id: number;
     title?: string; 
-    name: string;
+    username?: string;
     type: 'private' | 'group' | 'supergroup' | 'channel';
     isForum?: boolean;
+    topic?: string;
   };
   replyTo?: {
     messageId: number;

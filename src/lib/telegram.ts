@@ -65,10 +65,10 @@ export interface TelegramMessage {
     chat?: {
       id: number;
       title?: string;
-      first_name?: string;
       username?: string;
       type: 'private' | 'group' | 'supergroup' | 'channel';
       is_forum?: boolean;
+      topic?: string;
     };
     date: number;
     text?: string;
