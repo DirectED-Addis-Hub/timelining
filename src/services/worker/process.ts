@@ -18,8 +18,8 @@ export async function writeEntry(message: TelegramMessage): Promise<string> {
 
     const expected = logNodeCreation(entryInput);
     logger.info(`Chat type: ${entryInput.chat.type}`);
-    logger.info(`Chat first name: ${entryInput.chat.type === 'private' ? entryInput.chat.firstName || null : null}`);
-    logger.info(`Chat username: ${entryInput.chat.type === 'private' ? entryInput.chat.username || null : null}`);
+    logger.info(`Chat title: ${entryInput.chat.type === 'supergroup' ? entryInput.chat.title : null}`);
+    logger.info(`Chat username: ${entryInput.chat.type === 'private' ? entryInput.chat.username : null}`);
 
     try {
       try {
