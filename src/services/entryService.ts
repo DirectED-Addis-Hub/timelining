@@ -58,6 +58,10 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
           c.username = CASE 
             WHEN $chatType = 'private' AND $chatUsername IS NOT NULL THEN $chatUsername 
             ELSE NULL 
+          END,
+          c.topic = CASE 
+            WHEN $chatType = 'supergroup' AND $chatTopic IS NOT NULL THEN $chatTopic 
+            ELSE NULL 
           END
         CREATE (e:Entry {
           id: randomUUID(),
@@ -164,6 +168,7 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
         chatId: input.chat.id,
         chatTitle: input.chat.type === 'private' ? null : input.chat.title,
         chatUsername: input.chat.type === 'private' ? input.chat.username : null,
+        chatTopic: input.chat.type === 'private' ? null : input.chat.topic,
         chatType: input.chat.type,
         updateId: input.entry.updateId,
         messageId: input.entry.messageId,

@@ -1,6 +1,5 @@
 import { TelegramMessage } from '@/lib/telegram';
 import type { Node } from 'neo4j-driver';
-import { logger } from '../logger';
 
 import { 
     FullEntryData, 
@@ -43,6 +42,7 @@ export function mapTelegramMessageToEntryInputData(msg: TelegramMessage): FullEn
             username: msg.message.chat.username ? msg.message.chat.username : undefined,
             type: msg.message.chat.type,
             isForum: msg.message.chat.is_forum,
+            topic: msg.message.reply_to_message?.forum_topic_created ? msg.message.reply_to_message.forum_topic_created.name : undefined
         },
         replyTo: replyTo
             ? {
