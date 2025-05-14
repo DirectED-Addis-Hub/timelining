@@ -12,8 +12,12 @@ export async function GET(req: NextRequest) {
     const result = await session.run(
       `
       MATCH (chat:TelegramChat)
-      RETURN chat.id AS id, chat.name AS name
-      ORDER BY chat.name
+      RETURN chat.id AS id, 
+             chat.title AS title, 
+             chat.username AS username, 
+             chat.type AS type,
+             chat.topic AS topic
+      ORDER BY chat.title
       `
     );
 

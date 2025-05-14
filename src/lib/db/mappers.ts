@@ -140,6 +140,7 @@ function mapTelegramChatNode(node: Node): TelegramChatNode {
         type: node.properties.type,
         title: node.properties.title,
         username: node.properties.username,
+        topic: node.properties.topic
     };
 }
 
