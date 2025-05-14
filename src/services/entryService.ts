@@ -51,8 +51,8 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
         MERGE (c:TelegramChat {id: $chatId})
         ON CREATE SET 
           c.type = $chatType,
-          c.firstName = CASE 
-            WHEN $chatType = 'private' AND $chatFirstName IS NOT NULL THEN $chatFirstName 
+          c.title = CASE 
+            WHEN $chatType = 'supergroup' AND $chatTitle IS NOT NULL THEN $chatTitle 
             ELSE NULL 
           END,
           c.username = CASE 
@@ -162,8 +162,8 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
       const queryParams = {
         senderHandle: input.participant.handle,
         chatId: input.chat.id,
-        chatFirstName: input.chat.type === 'private' ? input.chat.firstName || null : null,
-        chatUsername: input.chat.type === 'private' ? input.chat.username || null : null,
+        chatTitle: input.chat.type === 'private' ? null : input.chat.title,
+        chatUsername: input.chat.type === 'private' ? input.chat.username : null,
         chatType: input.chat.type,
         updateId: input.entry.updateId,
         messageId: input.entry.messageId,

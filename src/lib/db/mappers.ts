@@ -39,9 +39,8 @@ export function mapTelegramMessageToEntryInputData(msg: TelegramMessage): FullEn
         },
         chat: {
             id: msg.message.chat.id,
-            title: msg.message.chat.title,
-            firstName: msg.message.chat.first_name,
-            username: msg.message.chat.username,
+            title: msg.message.chat.title ? msg.message.chat.title : undefined,
+            username: msg.message.chat.username ? msg.message.chat.username : undefined,
             type: msg.message.chat.type,
             isForum: msg.message.chat.is_forum,
         },
@@ -135,10 +134,8 @@ function mapTelegramChatNode(node: Node): TelegramChatNode {
     return {
         id: node.properties.id,
         type: node.properties.type,
-        firstName: node.properties.firstName,
+        title: node.properties.title,
         username: node.properties.username,
-        chatFirstName: node.properties.chatFirstName,
-        chatUsername: node.properties.chatUsername
     };
 }
 

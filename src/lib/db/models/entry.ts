@@ -4,11 +4,9 @@ export interface ParticipantNode {
 
 export interface TelegramChatNode {
   id: number;
-  firstName?: string;
+  title?: string;
   username?: string;
   type: 'private' | 'group' | 'supergroup' | 'channel';
-  chatFirstName?: string;
-  chatUsername?: string;
 }
 
 export interface EntryNode {
