@@ -18,9 +18,8 @@ export async function POST(request: NextRequest) {
     const messageId = data.message?.message_id;
 
     const topicName = data.message?.reply_to_message?.forum_topic_created?.name;
-    logger.info(data);
 
-    if (!(data.message?.chat?.type === 'private') && (!topicName || !topicName.includes('_bot'))) {
+    if (!(data.message?.chat?.type === 'private') && (!topicName || !topicName.includes('_bot') || !topicName.includes('prisma_events_storying'))) {
       logger.info('Message ignored.');
       return NextResponse.json({ status: 'ignored' });
     }
@@ -30,6 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Send silent reply
     await setMessageReaction(chatId, messageId);
+    logger.info('⚡ Message reacted to.');
 
     return NextResponse.json({ status: 'ok' });
   } catch (error) {

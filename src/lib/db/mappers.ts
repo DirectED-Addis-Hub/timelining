@@ -24,6 +24,10 @@ export function mapTelegramMessageToEntryInputData(msg: TelegramMessage): FullEn
     const replyTo = !!msg.message.reply_to_message && !msg.message.reply_to_message.forum_topic_created
         ? msg.message.reply_to_message
         : undefined;
+
+    const name = msg.message.reply_to_message && msg.message.reply_to_message.forum_topic_created
+        ? msg.message.reply_to_message.forum_topic_created.name
+        : `${msg.message.chat.type}_${msg.message.chat.username}`;
     
     const rawVideo = msg.message.video;
 
