@@ -12,11 +12,14 @@ export async function writeEntry(message: TelegramMessage): Promise<string> {
     try {
         entryInput = mapTelegramMessageToEntryInputData(message);
     } catch (error) {
-        logger.error('Failed to create full entry data object:', error);
+        logger.error('Failed to map message data to entry input data object:', error);
         throw error;
     }
 
     const expected = logNodeCreation(entryInput);
+    logger.info(`Chat type: ${entryInput.chat.type}`);
+    logger.info(`Chat first name: ${entryInput.chat.type === 'private' ? entryInput.chat.firstName || null : null}`);
+    logger.info(`Chat username: ${entryInput.chat.type === 'private' ? entryInput.chat.username || null : null}`);
 
     try {
       try {

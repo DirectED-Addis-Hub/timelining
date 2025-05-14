@@ -157,7 +157,6 @@ function mapCaptionContentNode(node: Node): CaptionContentNode {
 }
 
 function mapEntityNodes(entities: Node[]): EntityNode[] {
-    logger.info(entities)
     return entities.map((entity) => ({
         id: entity.properties.id,
         offset: entity.properties.offset,
