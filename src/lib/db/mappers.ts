@@ -1,6 +1,5 @@
 import { TelegramMessage } from '@/lib/telegram';
 import type { Node } from 'neo4j-driver';
-import { logger } from '../logger';
 
 import { 
     FullEntryData, 
@@ -43,10 +42,11 @@ export function mapTelegramMessageToEntryInputData(msg: TelegramMessage): FullEn
         },
         chat: {
             id: msg.message.chat.id,
-            title: msg.message.chat.title,
-            name: name,
+            title: msg.message.chat.title ? msg.message.chat.title : undefined,
+            username: msg.message.chat.username ? msg.message.chat.username : undefined,
             type: msg.message.chat.type,
             isForum: msg.message.chat.is_forum,
+            topic: msg.message.reply_to_message?.forum_topic_created ? msg.message.reply_to_message.forum_topic_created.name : undefined
         },
         replyTo: replyTo
             ? {
@@ -138,10 +138,8 @@ function mapTelegramChatNode(node: Node): TelegramChatNode {
     return {
         id: node.properties.id,
         type: node.properties.type,
-        firstName: node.properties.firstName,
+        title: node.properties.title,
         username: node.properties.username,
-        chatFirstName: node.properties.chatFirstName,
-        chatUsername: node.properties.chatUsername
     };
 }
 
@@ -160,7 +158,6 @@ function mapCaptionContentNode(node: Node): CaptionContentNode {
 }
 
 function mapEntityNodes(entities: Node[]): EntityNode[] {
-    logger.info(entities)
     return entities.map((entity) => ({
         id: entity.properties.id,
         offset: entity.properties.offset,
