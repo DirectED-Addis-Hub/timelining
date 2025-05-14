@@ -97,7 +97,7 @@ export interface FullEntryInputData {
   chat: {
     id: number;
     title?: string; 
-    name: string;
+    username?: string;
     type: 'private' | 'group' | 'supergroup' | 'channel';
     isForum?: boolean;
     topic?: string;
