@@ -11,13 +11,14 @@ export async function GET(req: NextRequest) {
   try {
     const result = await session.run(
       `
-      MATCH (chat:TelegramChat)
-      RETURN chat.id AS id, 
-             chat.title AS title, 
-             chat.username AS username, 
-             chat.type AS type,
-             chat.topic AS topic
-      ORDER BY chat.title
+        MATCH (chat:TelegramChat)
+        RETURN chat.id AS id, 
+              chat.type AS type,
+              chat.title AS title, 
+              chat.username AS username,
+              chat.topic AS topic,
+              COALESCE(chat.title, chat.username, chat.id) AS displayName
+        ORDER BY displayName
       `
     );
 
