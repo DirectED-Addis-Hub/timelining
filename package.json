@@ -10,7 +10,7 @@
     "test": "pnpm run db:up && pnpm run wait:neo4j && jest && pnpm run db:down",
     "set:webhook": "tsx scripts/setWebhook.ts",
     "get:webhook": "tsx scripts/getWebhook.ts",
-    "triggerWorker": "tsx scripts/triggerWorker.ts", 
+    "triggerWorker": "tsx scripts/triggerWorker.ts",
     "dev": "next dev --turbopack",
     "build": "next build"
   },
@@ -37,6 +37,7 @@
     "@types/yargs": "^17.0.33",
     "@vercel/node": "^2.3.0",
     "eslint": "^9.26.0",
+    "eslint-plugin-next": "^0.0.0",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
     "jest": "^29.7.0",

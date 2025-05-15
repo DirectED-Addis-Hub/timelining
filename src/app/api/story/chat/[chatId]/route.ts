@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, {
 }: {
   params: Promise<{ chatId: string }>
 }) {
-  const { chatId } = await params;
+  const { chatId } = await params
   const driver = await initDriver();
   const session = driver.session({ database: 'neo4j' });
 
@@ -37,8 +37,10 @@ export async function GET(req: NextRequest, {
         vid, 
         vidnote
       `,
-      { chatId }
+      { chatId: Number(chatId) }
     );
+
+    logger.info(`Found ${result.records.length} records`)
 
     const records = result.records.map(record => ({
       entry: record.get('e')?.properties ?? null,

@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
 
     const chats = result.records.map(record => ({
       id: record.get('id'),
-      name: record.get('name'),
+      type: record.get('type'),
+      title: record.get('title'),
+      username: record.get('username'),
+      topic: record.get('topic'),
     }));
 
     return NextResponse.json({ chats });
