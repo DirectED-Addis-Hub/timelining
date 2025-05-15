@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
       title: record.get('title'),
       username: record.get('username'),
       topic: record.get('topic'),
+      displayName: record.get('displayName'),
     }));
 
     return NextResponse.json({ chats });
