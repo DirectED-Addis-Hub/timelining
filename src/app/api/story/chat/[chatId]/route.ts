@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
+import { FullEntryData } from '@/lib/db/models/entry';
 
 export async function GET(req: NextRequest, {
   params,
@@ -16,7 +17,10 @@ export async function GET(req: NextRequest, {
   try {
     const result = await session.run(
       `
-      MATCH (chat:TelegramChat {id: $chatId})<-[:FROM_CHAT]-(e:Entry)
+      MATCH (chat:TelegramChat)
+      WHERE chat.chatId = $chatId
+    
+      MATCH (chat)<-[:FROM_CHAT]-(e:Entry)
       OPTIONAL MATCH (e)-[:SENT_BY]->(p:Participant)
       OPTIONAL MATCH (e)-[:HAS_TEXT]->(t:TextContent)
       OPTIONAL MATCH (e)-[:HAS_CAPTION]->(cap:CaptionContent)
@@ -26,35 +30,32 @@ export async function GET(req: NextRequest, {
       OPTIONAL MATCH (e)-[:HAS_VIDEO]->(vid:Video)
       OPTIONAL MATCH (e)-[:HAS_VIDEO_NOTE]->(vidnote:VideoNote)
 
-      RETURN 
-        e, 
-        p, 
-        t, 
-        cap, 
-        en, 
-        pht, 
-        vn, 
-        vid, 
-        vidnote
+      WITH chat.topic AS topic, {
+        entry: e { .*, id: ID(e) },
+        participant: p { .*, id: ID(p) },
+        text: t { .* },
+        caption: cap { .* },
+        entity: en { .* },
+        photo: pht { .* },
+        voice: vn { .* },
+        video: vid { .* },
+        videoNote: vidnote { .* }
+      } AS entryData
+
+      WITH topic, collect(entryData) AS entries
+      WITH collect({ topic: topic, entries: entries }) AS topics
+
+      RETURN { topics: topics } AS json
       `,
       { chatId: Number(chatId) }
-    );
+    );    
 
-    logger.info(`Found ${result.records.length} records`)
+    logger.info(`Found ${result.records.length} topics`);
+    
+    const json = result.records[0].get('json');
 
-    const records = result.records.map(record => ({
-      entry: record.get('e')?.properties ?? null,
-      participant: record.get('p')?.properties ?? null,
-      text: record.get('t')?.properties ?? null,
-      caption: record.get('cap')?.properties ?? null,
-      entity: record.get('en')?.properties ?? null,
-      photo: record.get('pht')?.properties ?? null,
-      voice: record.get('vn')?.properties ?? null,
-      video: record.get('vid')?.properties ?? null,
-      videoNote: record.get('vidnote')?.properties ?? null,
-    }));
+    return NextResponse.json(json);
 
-    return NextResponse.json({ entries: records });
   } catch (error: unknown) {
     logger.error('Failed to fetch full chat data', { error });
 
