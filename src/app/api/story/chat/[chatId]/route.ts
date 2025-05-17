@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, {
     const result = await session.run(
       `
       MATCH (chat:TelegramChat)
-      WHERE chat.chatId = $chatId
+      WHERE chat.id = $chatId
     
       MATCH (chat)<-[:FROM_CHAT]-(e:Entry)
       OPTIONAL MATCH (e)-[:SENT_BY]->(p:Participant)
