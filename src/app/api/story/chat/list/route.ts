@@ -6,21 +6,27 @@ export async function GET(req: NextRequest) {
   const driver = await initDriver();
   const session = driver.session({ database: 'neo4j' });
 
-  logger.info('Fetching all TelegramChat nodes');
+  logger.info('Fetching TelegramChat nodes');
+
+  // Extract "type" query parameter
+  const { searchParams } = new URL(req.url);
+  const typeFilter = searchParams.get('type');
 
   try {
-    const result = await session.run(
-      `
-        MATCH (chat:TelegramChat)
-        RETURN chat.id AS id, 
-              chat.type AS type,
-              chat.title AS title, 
-              chat.username AS username,
-              chat.topic AS topic,
-              COALESCE(chat.title, chat.username, chat.id) AS displayName
-        ORDER BY displayName
-      `
-    );
+    // Build Cypher query with optional WHERE clause
+    const cypher = `
+      MATCH (chat:TelegramChat)
+      ${typeFilter ? 'WHERE chat.type = $type' : ''}
+      RETURN chat.id AS id, 
+             chat.type AS type,
+             chat.title AS title, 
+             chat.username AS username,
+             chat.topic AS topic,
+             COALESCE(chat.title, chat.username, chat.id) AS displayName
+      ORDER BY displayName
+    `;
+
+    const result = await session.run(cypher, typeFilter ? { type: typeFilter } : {});
 
     const chats = result.records.map(record => ({
       id: record.get('id'),

@@ -48,7 +48,7 @@ export async function createEntry(input: FullEntryInputData): Promise<string> {
     const result = await session.writeTransaction(async (tx: Transaction): Promise<QueryResult> => {
       const cypherQuery = `
         MERGE (p:Participant {handle: $senderHandle})
-        MERGE (c:TelegramChat {id: $chatId})
+        MERGE (c:TelegramChat {id: $chatId, topic: $chatTopic})
         ON CREATE SET 
           c.type = $chatType,
           c.title = CASE 
