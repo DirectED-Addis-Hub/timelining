@@ -30,20 +30,23 @@ export async function GET(req: NextRequest, {
       OPTIONAL MATCH (e)-[:HAS_VIDEO]->(vid:Video)
       OPTIONAL MATCH (e)-[:HAS_VIDEO_NOTE]->(vidnote:VideoNote)
 
-      WITH chat.topic AS topic, {
-        entry: e { .*, id: ID(e) },
-        participant: p { .*, id: ID(p) },
-        text: t { .* },
-        caption: cap { .* },
-        entity: en { .* },
-        photo: pht { .* },
-        voice: vn { .* },
-        video: vid { .* },
-        videoNote: vidnote { .* }
-      } AS entryData
+      WITH 
+        COALESCE(chat.topic, 'no-topic') AS topic,
+        chat.type AS chatType,
+        {
+          entry: e { .*, id: ID(e) },
+          participant: p { .*, id: ID(p) },
+          text: t { .* },
+          caption: cap { .* },
+          entity: en { .* },
+          photo: pht { .* },
+          voice: vn { .* },
+          video: vid { .* },
+          videoNote: vidnote { .* }
+        } AS entryData
 
-      WITH topic, collect(entryData) AS entries
-      WITH collect({ topic: topic, entries: entries }) AS topics
+      WITH topic, chatType, collect(entryData) AS entries
+      WITH collect({ topic: topic, chatType: chatType, entries: entries }) AS topics
 
       RETURN { topics: topics } AS json
       `,
@@ -51,7 +54,7 @@ export async function GET(req: NextRequest, {
     );    
 
     logger.info(`Found ${result.records.length} topics`);
-    
+
     const json = result.records[0].get('json');
 
     return NextResponse.json(json);
