@@ -13,74 +13,34 @@ export async function GET(_req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       
-      controller.enqueue(encoder.encode('{\n"nodes": [\n')); // Start fast
+      controller.enqueue(encoder.encode('{\n"edges": [\n')); // Start fast
       
       try {
-        logger.info('Running Cypher query to fetch nodes and relationships');
+        logger.info('Running Cypher query to fetch edges');
         const result = await session.run(`
-          MATCH (n)
-          OPTIONAL MATCH (n)-[r]->(m)
-          RETURN 
-            collect(DISTINCT {
-              id: 
-                CASE 
-                  WHEN n.handle IS NOT NULL THEN n.handle
-                  ELSE n.id
-                END,
-              label: labels(n)[0],
-              properties: properties(n)
-            }) AS nodes,
-            collect(DISTINCT {
-              id: id(r),
-              source: 
-                CASE 
-                  WHEN startNode(r).handle IS NOT NULL THEN startNode(r).handle
-                  ELSE startNode(r).id
-                END,
-              target: 
-                CASE 
-                  WHEN endNode(r).handle IS NOT NULL THEN endNode(r).handle
-                  ELSE endNode(r).id
-                END,
-              type: type(r),
-              properties: properties(r)
+            MATCH (n)-[r]->(m)
+            RETURN collect(DISTINCT {
+                id: id(r),
+                source: 
+                    CASE 
+                        WHEN startNode(r).handle IS NOT NULL THEN startNode(r).handle
+                        ELSE startNode(r).id
+                    END,
+                target: 
+                    CASE 
+                        WHEN endNode(r).handle IS NOT NULL THEN endNode(r).handle
+                        ELSE endNode(r).id
+                    END,
+                type: type(r),
+                properties: properties(r)
             }) AS relationships
-
         `);
 
         const record = result.records[0];
-        const nodesRaw = record.get('nodes');
         const edgesRaw = record.get('relationships');
 
-        logger.info(`Fetched ${nodesRaw.length} nodes and ${edgesRaw.length} relationships`);
-        logger.info('First 5 nodes:', nodesRaw.slice(0, 5));
+        logger.info(`Fetched ${edgesRaw.length} relationships`);
         logger.info('First 5 edges:', edgesRaw.slice(0, 5));
-
-        // Stream nodes
-        for (let i = 0; i < nodesRaw.length; i++) {
-          const node = nodesRaw[i];
-
-          // Handle ID selection and casting
-          const rawId = node.properties?.handle ?? node.properties?.id;
-          const nodeId = String(rawId); // Ensures consistent string ID for graph use
-
-          // Remove 'id' from properties to avoid conflict
-          const { id: _removedId, ...safeProperties } = node.properties ?? {};
-
-          const nodeData = {
-            data: {
-              id: nodeId,
-              label: node.label || 'Node',
-              ...safeProperties,
-            },
-          };
-          controller.enqueue(encoder.encode(JSON.stringify(nodeData)));
-          if (i < nodesRaw.length - 1) controller.enqueue(encoder.encode(',\n'));
-        }
-
-        logger.info('Finished streaming nodes');
-
-        controller.enqueue(encoder.encode('\n],\n"edges": [\n'));
 
         // Stream edges
         for (let i = 0; i < edgesRaw.length; i++) {
@@ -130,7 +90,7 @@ export async function GET(_req: NextRequest) {
 
         logger.info('Graph streaming completed successfully');
       } catch (error: unknown) {
-        logger.error('Failed to stream full graph', { error });
+        logger.error('Failed to stream edges', { error });
         controller.enqueue(encoder.encode(JSON.stringify({ error: 'Streaming error', details: String(error) })));
         controller.close();
       } finally {
