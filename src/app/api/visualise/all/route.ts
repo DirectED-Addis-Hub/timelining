@@ -12,6 +12,9 @@ export async function GET(_req: NextRequest) {
 
   const stream = new ReadableStream({
     async start(controller) {
+      
+      controller.enqueue(encoder.encode('{\n"nodes": [\n')); // Start fast
+      
       try {
         logger.info('Running Cypher query to fetch nodes and relationships');
         const result = await session.run(`
