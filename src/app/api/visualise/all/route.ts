@@ -56,8 +56,6 @@ export async function GET(_req: NextRequest) {
         logger.info('First 5 nodes:', nodesRaw.slice(0, 5));
         logger.info('First 5 edges:', edgesRaw.slice(0, 5));
 
-        controller.enqueue(encoder.encode('{\n"nodes": [\n'));
-
         // Stream nodes
         for (let i = 0; i < nodesRaw.length; i++) {
           const node = nodesRaw[i];
