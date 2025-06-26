@@ -2,7 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://evaluate.prisma.events', // Replace with your actual prod domain
+];
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://your-production-domain.com',
+  ];
+
+  if (origin && allowedOrigins.includes(origin)) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+  }
+
+  // Return an empty object, but make sure all values are still strings
+  return {};
+}
+
+// Handle OPTIONS preflight requests
+export function OPTIONS(_req: NextRequest) {
+  const origin = _req.headers.get('origin');
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...getCorsHeaders(origin),
+    },
+  });
+}
+
 export async function GET(_req: NextRequest) {
+  const origin = _req.headers.get('origin');
   const driver = await initDriver();
   const session = driver.session({ database: 'neo4j' });
 
@@ -54,8 +89,7 @@ export async function GET(_req: NextRequest) {
               ...safeProperties,
             },
           };
-          controller.enqueue(encoder.encode(JSON.stringify(nodeData)));
-          if (i < nodesRaw.length - 1) controller.enqueue(encoder.encode(',\n'));
+          controller.enqueue(encoder.encode(JSON.stringify(nodeData) + '\n'));
         }
 
         logger.info('Finished streaming nodes');
@@ -77,8 +111,10 @@ export async function GET(_req: NextRequest) {
 
   return new NextResponse(stream, {
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-ndjson',
       'Transfer-Encoding': 'chunked',
+      'Cache-Control': 'no-cache',
+      ...getCorsHeaders(origin),
     },
   });
 }
