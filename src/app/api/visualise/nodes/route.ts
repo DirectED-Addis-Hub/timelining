@@ -4,14 +4,10 @@ import { logger } from '@/lib/logger';
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://evaluate.prisma.events', // Replace with your actual prod domain
+  'https://evaluate.prisma.events',
 ];
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://your-production-domain.com',
-  ];
 
   if (origin && allowedOrigins.includes(origin)) {
     return {
