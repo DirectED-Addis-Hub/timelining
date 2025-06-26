@@ -45,6 +45,11 @@ export async function GET(_req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       
+      // Streaming a dummy line immediately to keep the connection alive
+      const warmupPing = JSON.stringify({ type: "ping", message: "starting stream..." }) + '\n';
+      controller.enqueue(encoder.encode(warmupPing));
+      console.log("Sent warmup ping");
+      
       try {
         logger.info('Running Cypher query to fetch nodes');
         const result = await session.run(`
