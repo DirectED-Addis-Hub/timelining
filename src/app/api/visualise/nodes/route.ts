@@ -53,17 +53,23 @@ export async function GET(_req: NextRequest) {
       try {
         logger.info('Running Cypher query to fetch nodes');
         const result = await session.run(`
-          MATCH (n)
-          WHERE NOT 'VoiceChunk' IN labels(n)
+          MATCH (e:Entry)
+          OPTIONAL MATCH (e)--(related)
+          WHERE NOT 'VoiceChunk' IN labels(related)
+          WITH e, collect({
+            id: related.id,
+            label: labels(related)[0],
+            properties: properties(related)
+          }) AS connections
+          ORDER BY e.date ASC
           RETURN {
-            id: CASE 
-                  WHEN n.handle IS NOT NULL THEN n.handle
-                  ELSE n.id
-                END,
-            label: labels(n)[0],
-            properties: properties(n)
+            id: e.id,
+            date: e.date,
+            connections: connections
           } AS node
         `);
+
+        logger.info(`Fetched ${result.records.length} nodes`);
 
         let i = 0;
 
@@ -79,11 +85,9 @@ export async function GET(_req: NextRequest) {
           const { id: _removedId, ...safeProperties } = node.properties ?? {};
 
           const nodeData = {
-            data: {
-              id: nodeId,
-              label: node.label || 'Node',
-              ...safeProperties,
-            },
+            id: nodeId,
+            label: node.label || 'Node',
+            ...safeProperties,
           };
           
           const line = JSON.stringify(nodeData) + '\n';
@@ -91,6 +95,9 @@ export async function GET(_req: NextRequest) {
           
           // Log first 5 lines to console
           if (i++ < 5) console.log('Streamed line:', line);
+          
+          // Log last 5 lines to console
+          if (i > result.records.length - 5) console.log('Streamed line:', line);
         }
 
         logger.info('Finished streaming nodes');
