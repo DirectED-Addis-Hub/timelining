@@ -54,26 +54,22 @@ export async function GET(_req: NextRequest) {
         logger.info('Running Cypher query to fetch nodes');
         const result = await session.run(`
           MATCH (n)
-          RETURN collect(DISTINCT {
-            id: 
-              CASE 
-                WHEN n.handle IS NOT NULL THEN n.handle
-                ELSE n.id
-              END,
+          WHERE NOT 'VoiceChunk' IN labels(n)
+          RETURN {
+            id: CASE 
+                  WHEN n.handle IS NOT NULL THEN n.handle
+                  ELSE n.id
+                END,
             label: labels(n)[0],
             properties: properties(n)
-          }) AS nodes
+          } AS node
         `);
 
-        const record = result.records[0];
-        const nodesRaw = record.get('nodes');
-
-        logger.info(`Fetched ${nodesRaw.length} nodes`);
-        logger.info('First 5 nodes:', nodesRaw.slice(0, 5));
+        let i = 0;
 
         // Stream nodes
-        for (let i = 0; i < nodesRaw.length; i++) {
-          const node = nodesRaw[i];
+        for (const record of result.records) {
+          const node = record.get('node');
 
           // Handle ID selection and casting
           const rawId = node.properties?.handle ?? node.properties?.id;
@@ -94,7 +90,7 @@ export async function GET(_req: NextRequest) {
           controller.enqueue(encoder.encode(line));
           
           // Log first 5 lines to console
-          if (i < 5) console.log('Streamed line:', line);
+          if (i++ < 5) console.log('Streamed line:', line);
         }
 
         logger.info('Finished streaming nodes');
