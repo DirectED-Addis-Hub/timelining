@@ -34,17 +34,16 @@ export function OPTIONS(_req: NextRequest) {
 
 export async function GET(_req: NextRequest) {
   const origin = _req.headers.get('origin');
+  console.log("Request origin:", origin);
   const driver = await initDriver();
   const session = driver.session({ database: 'neo4j' });
 
-  logger.info('Initializing full graph stream for visualization');
+  logger.info('Initializing nodes stream for visualization');
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
-      
-      controller.enqueue(encoder.encode('{\n"nodes": [\n')); // Start fast
       
       try {
         logger.info('Running Cypher query to fetch nodes');
@@ -85,12 +84,16 @@ export async function GET(_req: NextRequest) {
               ...safeProperties,
             },
           };
-          controller.enqueue(encoder.encode(JSON.stringify(nodeData) + '\n'));
+          
+          const line = JSON.stringify(nodeData) + '\n';
+          controller.enqueue(encoder.encode(line));
+          
+          // Log first 5 lines to console
+          if (i < 5) console.log('Streamed line:', line);
         }
 
         logger.info('Finished streaming nodes');
 
-        controller.enqueue(encoder.encode('\n]\n}'));
         controller.close();
 
         logger.info('Graph streaming completed successfully');
