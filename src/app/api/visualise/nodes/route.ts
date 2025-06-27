@@ -34,7 +34,7 @@ export function OPTIONS(_req: NextRequest) {
 }
 
 // Convert Neo4j types into plain JS types
-function normalize(value: any) {
+function normalize(value: any): any {
   if (neo4j.isInt(value)) {
     return value.toNumber();
   }
