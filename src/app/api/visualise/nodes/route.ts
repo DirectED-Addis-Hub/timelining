@@ -119,7 +119,11 @@ export async function GET(_req: NextRequest) {
           controller.enqueue(encoder.encode(line));
           
           // Log first 5 lines to console
-          if (i++ < 5) console.log('Streamed line:', line);
+          if (i++ < 5) {
+            console.log('Streamed line:', line);
+            console.log('Raw node:', rawNode);
+            console.log('Node:', node);
+          }
           
           // Log last 5 lines to console
           if (i > result.records.length - 5) console.log('Streamed line:', line);
