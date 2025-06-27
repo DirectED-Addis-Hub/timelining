@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
+import neo4j from 'neo4j-driver';
 
 const allowedOrigins = [
   'http://localhost:3000',
@@ -31,6 +32,32 @@ export function OPTIONS(_req: NextRequest) {
     },
   });
 }
+
+// Convert Neo4j types into plain JS types
+function normalize(value: any) {
+  if (neo4j.isInt(value)) {
+    return value.toNumber();
+  }
+
+  if (value?.toStandardDate) {
+    return value.toStandardDate().toISOString(); // For DateTime
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalize);
+  }
+
+  if (value && typeof value === 'object') {
+    const out: Record<string, any> = {};
+    for (const [key, val] of Object.entries(value)) {
+      out[key] = normalize(val);
+    }
+    return out;
+  }
+
+  return value;
+}
+
 
 export async function GET(_req: NextRequest) {
   const origin = _req.headers.get('origin');
@@ -75,19 +102,17 @@ export async function GET(_req: NextRequest) {
 
         // Stream nodes
         for (const record of result.records) {
-          const node = record.get('node');
+          const rawNode = record.get('node');
+          const node = normalize(rawNode);
 
           // Handle ID selection and casting
-          const rawId = node.properties?.handle ?? node.properties?.id;
+          const rawId = node?.id;
           const nodeId = String(rawId); // Ensures consistent string ID for graph use
 
-          // Remove 'id' from properties to avoid conflict
-          const { id: _removedId, ...safeProperties } = node.properties ?? {};
-
           const nodeData = {
-            id: nodeId,
-            label: node.label || 'Node',
-            ...safeProperties,
+            id: String(node?.id ?? ''),
+            date: node?.date ?? null,
+            connections: node?.connections ?? [],
           };
           
           const line = JSON.stringify(nodeData) + '\n';
