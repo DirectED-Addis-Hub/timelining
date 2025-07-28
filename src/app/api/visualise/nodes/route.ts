@@ -2,26 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
 import neo4j from 'neo4j-driver';
+import { getCorsHeaders } from '@/lib/utils';
 
 const allowedOrigins = [
   'http://localhost:3000',
   'https://evaluate.prisma.events',
 ];
-
-export function getCorsHeaders(origin: string | null): Record<string, string> {
-
-  if (origin && allowedOrigins.includes(origin)) {
-    return {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    };
-  }
-
-  console.warn(`Blocked CORS request from disallowed origin: ${origin}`);
-  // Return an empty object, but make sure all values are still strings
-  return {};
-}
 
 // Handle OPTIONS preflight requests
 export function OPTIONS(_req: NextRequest) {
@@ -30,7 +16,7 @@ export function OPTIONS(_req: NextRequest) {
     status: 204,
     headers: {
       'Vary': 'Origin',
-      ...getCorsHeaders(origin),
+      ...getCorsHeaders(origin, allowedOrigins),
     },
   });
 }
@@ -152,7 +138,7 @@ export async function GET(_req: NextRequest) {
       'Content-Type': 'application/x-ndjson',
       'Cache-Control': 'no-cache',
       'Vary': 'Origin',
-      ...getCorsHeaders(origin),
+      ...getCorsHeaders(origin, allowedOrigins),
     },
   });
 }

@@ -5,4 +5,18 @@ export function handleError(error: unknown) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  
+
+export function getCorsHeaders(origin: string | null, allowedOrigins: string[]): Record<string, string> {
+
+  if (origin && allowedOrigins.includes(origin)) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+  }
+
+  console.warn(`Blocked CORS request from disallowed origin: ${origin}`);
+  // Return an empty object, but make sure all values are still strings
+  return {};
+}

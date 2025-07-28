@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
-import { getCorsHeaders } from '../nodes/route';
+import { getCorsHeaders } from '@/lib/utils';
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://evaluate.prisma.events',
+];
 
 export async function GET(_req: NextRequest) {
   const driver = await initDriver();
@@ -106,7 +111,7 @@ export async function GET(_req: NextRequest) {
       'Content-Type': 'application/json',
       'Cache-Control': 'no-cache',
       'Vary': 'Origin',
-      ...getCorsHeaders(origin),
+      ...getCorsHeaders(origin, allowedOrigins),
     },
   });
 }
