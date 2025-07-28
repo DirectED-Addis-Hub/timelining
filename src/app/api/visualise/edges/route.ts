@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initDriver } from '@/lib/db/neo4j';
 import { logger } from '@/lib/logger';
+import { getCorsHeaders } from '../nodes/route';
 
 export async function GET(_req: NextRequest) {
   const driver = await initDriver();
@@ -103,7 +104,9 @@ export async function GET(_req: NextRequest) {
   return new NextResponse(stream, {
     headers: {
       'Content-Type': 'application/json',
-      'Transfer-Encoding': 'chunked',
+      'Cache-Control': 'no-cache',
+      'Vary': 'Origin',
+      ...getCorsHeaders(origin),
     },
   });
 }

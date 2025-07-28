@@ -8,7 +8,7 @@ const allowedOrigins = [
   'https://evaluate.prisma.events',
 ];
 
-function getCorsHeaders(origin: string | null): Record<string, string> {
+export function getCorsHeaders(origin: string | null): Record<string, string> {
 
   if (origin && allowedOrigins.includes(origin)) {
     return {
@@ -18,6 +18,7 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
     };
   }
 
+  console.warn(`Blocked CORS request from disallowed origin: ${origin}`);
   // Return an empty object, but make sure all values are still strings
   return {};
 }
@@ -28,6 +29,7 @@ export function OPTIONS(_req: NextRequest) {
   return new Response(null, {
     status: 204,
     headers: {
+      'Vary': 'Origin',
       ...getCorsHeaders(origin),
     },
   });
@@ -148,8 +150,8 @@ export async function GET(_req: NextRequest) {
   return new NextResponse(stream, {
     headers: {
       'Content-Type': 'application/x-ndjson',
-      'Transfer-Encoding': 'chunked',
       'Cache-Control': 'no-cache',
+      'Vary': 'Origin',
       ...getCorsHeaders(origin),
     },
   });
