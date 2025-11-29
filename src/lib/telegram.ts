@@ -153,7 +153,7 @@ export async function setMessageReaction(chatId: number, messageId: string) {
     await telegramApi.post(`https://api.telegram.org/bot${BOT_TOKEN}/setMessageReaction`, {
       chat_id: chatId,
       message_id: messageId,
-      reaction: [{ type: 'emoji', emoji: '👍' }]
+      reaction: [{ type: 'emoji', emoji: '⚡' }]
     });
     return;
 
